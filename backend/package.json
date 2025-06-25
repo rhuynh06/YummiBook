@@ -1,0 +1,30 @@
+{
+  "name": "cook-book",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rhuynh06/cook-book.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/rhuynh06/cook-book/issues"
+  },
+  "homepage": "https://github.com/rhuynh06/cook-book#readme",
+  "dependencies": {
+    "@prisma/client": "^6.10.1",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "prisma": "^6.10.1"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  }
+}

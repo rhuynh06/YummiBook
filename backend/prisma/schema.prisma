@@ -1,0 +1,31 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Food {
+  id            Int     @id @default(autoincrement())
+  name          String  @unique
+  price         Float
+  cuisine       String
+  prepTime      Int
+  mealTime      MealTime
+  isVegan       Boolean
+  isVegetarian  Boolean
+  ingredients   String[]
+}
+
+enum MealTime{
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
