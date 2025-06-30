@@ -1,4 +1,4 @@
-const { PrismaClient } = require('@prisma/client')
+const { PrismaClient } = require('../generated/prisma')
 const prisma = new PrismaClient()
 
 async function main() {
@@ -12,7 +12,7 @@ async function main() {
         mealTime: "LUNCH",
         isVegan: true,
         isVegetarian: true,
-        ingredients: ["avocado", "bread", "salt"]
+        ingredients: JSON.stringify(["avocado", "bread", "salt"])
       },
       {
         name: "Marvin Gyro",
@@ -22,7 +22,7 @@ async function main() {
         mealTime: "LUNCH",
         isVegan: false,
         isVegetarian: false,
-        ingredients: ["flatbread", "lettuce", "lamb", "fries", "sour cream"]
+        ingredients: JSON.stringify(["flatbread", "lettuce", "lamb", "fries", "sour cream"])
       },
       {
         name: "Ryan Bun Bo Hue",
@@ -32,7 +32,7 @@ async function main() {
         mealTime: "LUNCH",
         isVegan: false,
         isVegetarian: false,
-        ingredients: [
+        ingredients: JSON.stringify([
           "beef bones",
           "lemongrass",
           "rice vermicelli noodles",
@@ -40,7 +40,7 @@ async function main() {
           "vegetables",
           "lemon",
           "chili oil"
-        ]
+        ])
       }
     ]
   })

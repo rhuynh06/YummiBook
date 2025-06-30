@@ -20,7 +20,7 @@ model Food {
   mealTime      MealTime
   isVegan       Boolean
   isVegetarian  Boolean
-  ingredients   String[]
+  ingredients   String  // Store as JSON string
 }
 
 enum MealTime{
