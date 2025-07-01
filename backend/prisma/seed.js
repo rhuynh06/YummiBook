@@ -2,6 +2,9 @@ const { PrismaClient } = require('../generated/prisma')
 const prisma = new PrismaClient()
 
 async function main() {
+  // Clear existing data first
+  await prisma.food.deleteMany({})
+  
   await prisma.food.createMany({
     data: [
       {
