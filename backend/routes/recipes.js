@@ -35,19 +35,39 @@ router.get('/filter', async (req, res) => {
     } = req.query
 
     try {
+        // Build where clause for Prisma
+        const whereClause = {};
+        
+        if (cuisine && cuisine.trim() !== '') {
+            whereClause.cuisine = { contains: cuisine, mode: 'insensitive' };
+        }
+        
+        if (maxPrice && !isNaN(parseFloat(maxPrice))) {
+            whereClause.price = { lte: parseFloat(maxPrice) };
+        }
+        
+        if (mealTime && mealTime.trim() !== '') {
+            whereClause.mealTime = mealTime.toUpperCase();
+        }
+        
+        if (isVegan !== undefined && isVegan !== null && isVegan !== '') {
+            whereClause.isVegan = isVegan === 'true';
+        }
+        
+        if (isVegetarian !== undefined && isVegetarian !== null && isVegetarian !== '') {
+            whereClause.isVegetarian = isVegetarian === 'true';
+        }
+        
+        if (maxPrepTime && !isNaN(parseInt(maxPrepTime))) {
+            whereClause.prepTime = { lte: parseInt(maxPrepTime) };
+        }
+
         let foods = await prisma.food.findMany({
-            where: {
-                ...(cuisine && {cuisine: {equals: cuisine, mode: 'insensitive'}}),
-                ...(maxPrice && {price: {lte: parseFloat(maxPrice)}}),
-                ...(mealTime && {mealTime: mealTime.toUpperCase()}),
-                ...(isVegan !== undefined && {isVegan: isVegan === 'true'}),
-                ...(isVegetarian !== undefined && {isVegetarian: isVegetarian === 'true'}),
-                ...(maxPrepTime && {prepTime: {lte: parseInt(maxPrepTime)}})
-            }
+            where: whereClause
         });
 
         // Filter by ingredient if provided (since we can't use array operations in SQLite)
-        if (ingredient) {
+        if (ingredient && ingredient.trim() !== '') {
             foods = foods.filter(food => {
                 try {
                     const ingredients = JSON.parse(food.ingredients || '[]');
@@ -55,20 +75,31 @@ router.get('/filter', async (req, res) => {
                         ing.toLowerCase().includes(ingredient.toLowerCase())
                     );
                 } catch (e) {
+                    console.error('Error parsing ingredients for food:', food.id, e);
                     return false;
                 }
             });
         }
 
         // Parse ingredients JSON string to array for frontend
-        const foodsWithParsedIngredients = foods.map(food => ({
-            ...food,
-            ingredients: JSON.parse(food.ingredients || '[]')
-        }));
+        const foodsWithParsedIngredients = foods.map(food => {
+            try {
+                return {
+                    ...food,
+                    ingredients: JSON.parse(food.ingredients || '[]')
+                };
+            } catch (e) {
+                console.error('Error parsing ingredients for food:', food.id, e);
+                return {
+                    ...food,
+                    ingredients: []
+                };
+            }
+        });
 
         res.json(foodsWithParsedIngredients);
     } catch (error) {
-        console.error(error);
+        console.error('Filter error:', error);
         res.status(500).json({error: 'Error fetching foods'});
     }
 });
