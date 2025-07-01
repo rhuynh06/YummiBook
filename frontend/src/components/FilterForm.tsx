@@ -47,8 +47,8 @@ export function FilterForm({ onFilter, onClear, isLoading = false }: FilterFormP
           <TextInput
             size="lg"
             placeholder="Search recipes by name, ingredients, or cuisine..."
-            value={filters.ingredient || ''}
-            onChange={(e) => updateFilter('ingredient', e.target.value)}
+            value={filters.search || ''}
+            onChange={(e) => updateFilter('search', e.target.value)}
             leftSection={<IconSearch size={20} />}
             className="mb-4"
           />

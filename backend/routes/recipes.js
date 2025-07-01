@@ -30,7 +30,7 @@ router.get('/filter', async (req, res) => {
         mealTime,
         isVegan,
         isVegetarian,
-        ingredient,
+        search,
         maxPrepTime
     } = req.query
 
@@ -66,18 +66,28 @@ router.get('/filter', async (req, res) => {
             where: whereClause
         });
 
-        // Filter by ingredient if provided (since we can't use array operations in SQLite)
-        if (ingredient && ingredient.trim() !== '') {
+        // Filter by search term if provided (search by name and ingredients)
+        if (search && search.trim() !== '') {
+            const searchTerm = search.toLowerCase();
             foods = foods.filter(food => {
+                // Search in recipe name
+                const nameMatch = food.name.toLowerCase().includes(searchTerm);
+                
+                // Search in ingredients
+                let ingredientMatch = false;
                 try {
                     const ingredients = JSON.parse(food.ingredients || '[]');
-                    return ingredients.some(ing => 
-                        ing.toLowerCase().includes(ingredient.toLowerCase())
+                    ingredientMatch = ingredients.some(ing => 
+                        ing.toLowerCase().includes(searchTerm)
                     );
                 } catch (e) {
                     console.error('Error parsing ingredients for food:', food.id, e);
-                    return false;
                 }
+                
+                // Search in cuisine
+                const cuisineMatch = food.cuisine.toLowerCase().includes(searchTerm);
+                
+                return nameMatch || ingredientMatch || cuisineMatch;
             });
         }
 

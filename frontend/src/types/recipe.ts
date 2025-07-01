@@ -16,6 +16,6 @@ export interface FilterOptions {
   mealTime?: string;
   isVegan?: boolean;
   isVegetarian?: boolean;
-  ingredient?: string;
+  search?: string;
   maxPrepTime?: number;
 } 
