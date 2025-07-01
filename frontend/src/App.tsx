@@ -74,27 +74,22 @@ function App() {
           </Alert>
         )}
 
-        {/* Main Content */}
-        <Group align="flex-start" gap="xl">
-          {/* Filters Sidebar */}
-          <div className="w-80 flex-shrink-0">
-            <FilterForm 
-              onFilter={handleFilter}
-              onClear={handleClearFilters}
-              isLoading={isLoading}
-            />
-          </div>
+        {/* Filters - Full Width */}
+        <FilterForm 
+          onFilter={handleFilter}
+          onClear={handleClearFilters}
+          isLoading={isLoading}
+        />
 
-          {/* Recipe List */}
-          <div className="flex-1">
-            <Group justify="space-between" className="mb-6">
-              <Title order={2} className="text-2xl font-semibold">
-                Recipes ({recipes.length})
-              </Title>
-            </Group>
-            <RecipeList recipes={recipes} isLoading={isLoading} />
-          </div>
-        </Group>
+        {/* Recipe List */}
+        <div>
+          <Group justify="space-between" className="mb-6">
+            <Title order={2} className="text-2xl font-semibold">
+              Recipes ({recipes.length})
+            </Title>
+          </Group>
+          <RecipeList recipes={recipes} isLoading={isLoading} />
+        </div>
       </Stack>
     </Container>
   );

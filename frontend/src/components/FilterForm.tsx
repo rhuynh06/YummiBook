@@ -3,15 +3,13 @@ import {
   Card, 
   TextInput, 
   Select, 
-  NumberInput, 
-  Checkbox, 
-  Button, 
+  Slider, 
   Group, 
   Stack,
-  Title,
-  Divider
+  Text,
+  Badge
 } from '@mantine/core';
-import { IconSearch, IconFilter } from '@tabler/icons-react';
+import { IconSearch } from '@tabler/icons-react';
 import type { FilterOptions } from '../types/recipe';
 
 interface FilterFormProps {
@@ -39,96 +37,122 @@ export function FilterForm({ onFilter, onClear, isLoading = false }: FilterFormP
     }));
   };
 
+  const activeFiltersCount = Object.values(filters).filter(v => v !== undefined && v !== null && v !== '').length;
+
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder>
       <Stack gap="md">
-        <Group>
-          <IconFilter size={20} />
-          <Title order={3}>Filter Recipes</Title>
-        </Group>
-
-        <Group grow>
+        {/* Main Search Bar */}
+        <div>
           <TextInput
-            label="Cuisine"
-            placeholder="e.g., Italian, Mexican"
-            value={filters.cuisine || ''}
-            onChange={(e) => updateFilter('cuisine', e.target.value)}
-          />
-          <TextInput
-            label="Ingredient"
-            placeholder="e.g., chicken, tomato"
+            size="lg"
+            placeholder="Search recipes by name, ingredients, or cuisine..."
             value={filters.ingredient || ''}
             onChange={(e) => updateFilter('ingredient', e.target.value)}
+            leftSection={<IconSearch size={20} />}
+            className="mb-4"
           />
-        </Group>
+        </div>
 
-        <Group grow>
-          <Select
-            label="Meal Time"
-            placeholder="Select meal time"
-            data={[
-              { value: 'BREAKFAST', label: 'Breakfast' },
-              { value: 'LUNCH', label: 'Lunch' },
-              { value: 'DINNER', label: 'Dinner' },
-              { value: 'SNACK', label: 'Snack' }
-            ]}
-            value={filters.mealTime || ''}
-            onChange={(value) => updateFilter('mealTime', value)}
-            clearable
-          />
-          <NumberInput
-            label="Max Price ($)"
-            placeholder="e.g., 25"
-            min={0}
-            value={filters.maxPrice || ''}
-            onChange={(value) => updateFilter('maxPrice', value)}
-          />
-        </Group>
-
-        <Group grow>
-          <NumberInput
-            label="Max Prep Time (min)"
-            placeholder="e.g., 30"
-            min={0}
-            value={filters.maxPrepTime || ''}
-            onChange={(value) => updateFilter('maxPrepTime', value)}
-          />
-        </Group>
-
-        <Divider />
-
-        <Stack gap="xs">
-          <div className="text-sm font-medium">Dietary Preferences</div>
-          <Group>
-            <Checkbox
-              label="Vegan"
-              checked={filters.isVegan || false}
-              onChange={(e) => updateFilter('isVegan', e.target.checked)}
+        {/* Compact Secondary Filters */}
+        <div className="space-y-4">
+          <Group gap="md" wrap="wrap">
+            {/* Cuisine Dropdown */}
+            <Select
+              size="sm"
+              placeholder="Cuisine"
+              data={[
+                { value: 'ITALIAN', label: 'Italian' },
+                { value: 'MEXICAN', label: 'Mexican' },
+                { value: 'VIETNAMESE', label: 'Vietnamese' },
+                { value: 'CHINESE', label: 'Chinese' },
+                { value: 'INDIAN', label: 'Indian' },
+                { value: 'JAPANESE', label: 'Japanese' },
+                { value: 'THAI', label: 'Thai' },
+                { value: 'FRENCH', label: 'French' },
+                { value: 'MEDITERRANEAN', label: 'Mediterranean' },
+                { value: 'AMERICAN', label: 'American' }
+              ]}
+              value={filters.cuisine || ''}
+              onChange={(value) => updateFilter('cuisine', value)}
+              clearable
+              className="min-w-32"
             />
-            <Checkbox
-              label="Vegetarian"
-              checked={filters.isVegetarian || false}
-              onChange={(e) => updateFilter('isVegetarian', e.target.checked)}
+
+            {/* Meal Time Dropdown */}
+            <Select
+              size="sm"
+              placeholder="Meal Time"
+              data={[
+                { value: 'BREAKFAST', label: 'Breakfast' },
+                { value: 'LUNCH', label: 'Lunch' },
+                { value: 'DINNER', label: 'Dinner' },
+                { value: 'SNACK', label: 'Snack' }
+              ]}
+              value={filters.mealTime || ''}
+              onChange={(value) => updateFilter('mealTime', value)}
+              clearable
+              className="min-w-32"
             />
+
+            {/* Price Slider */}
+            <div className="min-w-48">
+              <Text size="xs" c="dimmed" className="mb-1">Price: ${filters.maxPrice || 0}</Text>
+              <Slider
+                size="sm"
+                min={0}
+                max={50}
+                step={1}
+                value={filters.maxPrice || 0}
+                onChange={(value) => updateFilter('maxPrice', value)}
+                label={(value) => `$${value}`}
+                className="w-full"
+              />
+            </div>
+
+            {/* Prep Time Slider */}
+            <div className="min-w-48">
+              <Text size="xs" c="dimmed" className="mb-1">Prep Time: {filters.maxPrepTime || 0} min</Text>
+              <Slider
+                size="sm"
+                min={0}
+                max={120}
+                step={5}
+                value={filters.maxPrepTime || 0}
+                onChange={(value) => updateFilter('maxPrepTime', value)}
+                label={(value) => `${value} min`}
+                className="w-full"
+              />
+            </div>
           </Group>
-        </Stack>
 
-        <Group justify="space-between">
-          <Button 
-            variant="outline" 
-            onClick={handleClear}
-            disabled={isLoading}
-          >
-            Clear Filters
-          </Button>
-          <Button 
-            leftSection={<IconSearch size={16} />}
-            onClick={handleFilter}
-            loading={isLoading}
-          >
-            Apply Filters
-          </Button>
-        </Group>
+          {/* Action Buttons */}
+          <Group justify="space-between" className="pt-2">
+            <Group gap="xs">
+              {activeFiltersCount > 0 && (
+                <Badge color="blue" variant="light">
+                  {activeFiltersCount} filter{activeFiltersCount !== 1 ? 's' : ''} active
+                </Badge>
+              )}
+            </Group>
+            <Group gap="xs">
+              <button
+                onClick={handleClear}
+                disabled={isLoading || activeFiltersCount === 0}
+                className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 disabled:opacity-50"
+              >
+                Clear
+              </button>
+              <button
+                onClick={handleFilter}
+                disabled={isLoading}
+                className="px-4 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+              >
+                {isLoading ? 'Searching...' : 'Search'}
+              </button>
+            </Group>
+          </Group>
+        </div>
       </Stack>
     </Card>
   );
