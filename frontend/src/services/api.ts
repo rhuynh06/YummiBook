@@ -39,9 +39,10 @@ export const api = {
     });
 
     if (!response.ok) {
+      console.log('Posting to: ', API_BASE_URL);
       throw new Error('Failed to add recipe');
     }
 
     return await response.json();
   }
-}; 
+};

@@ -127,7 +127,7 @@ router.post('/', async (req, res) => {
     mealTime,
     isVegan,
     isVegetarian,
-    ingredients
+    ingredients,
   } = req.body;
 
   try {
@@ -140,8 +140,8 @@ router.post('/', async (req, res) => {
         mealTime,
         isVegan,
         isVegetarian,
-        ingredients: JSON.stringify(ingredients)
-      }
+        ingredients: JSON.stringify(ingredients),
+      },
     });
 
     newRecipe.ingredients = JSON.parse(newRecipe.ingredients || '[]');

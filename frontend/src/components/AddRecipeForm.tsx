@@ -28,7 +28,7 @@ export function AddRecipeForm() {
   const handleChange = (field: string, value: any) => {
     setForm(prev => ({ ...prev, [field]: value }));
   };
-
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -38,6 +38,7 @@ export function AddRecipeForm() {
         ingredients: form.ingredients.split(',').map(i => i.trim()),
       });
       alert('Recipe added!');
+      // Reset form if needed
       setForm({
         name: '',
         price: 0,
@@ -48,6 +49,8 @@ export function AddRecipeForm() {
         isVegetarian: false,
         ingredients: '',
       });
+      // Reload page
+      window.location.reload();
     } catch (err) {
       console.error(err);
       alert('Failed to add recipe');
