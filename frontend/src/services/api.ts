@@ -26,6 +26,6 @@ export const api = {
     if (!response.ok) {
       throw new Error('Failed to filter recipes');
     }
-    return response.json();
+    return await response.json(); //changed to await response.json() to ensure proper JSON parsing
   }
 }; 

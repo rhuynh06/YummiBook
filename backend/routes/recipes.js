@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
 });
 
 // Filter recipes
-router.get('/filter', async (req, res) => {
+router.get('/api/recipes/filter', async (req, res) => { //Anthony edited this line to add /api/recipes/filter
     const {
         cuisine,
         maxPrice,
@@ -40,6 +40,7 @@ router.get('/filter', async (req, res) => {
         
         if (cuisine && cuisine.trim() !== '') {
             whereClause.cuisine = { contains: cuisine, mode: 'insensitive' };
+            console.log('Cuisine:', cuisine, '| Where:', whereClause); //testing, delete after
         }
         
         if (maxPrice && !isNaN(parseFloat(maxPrice))) {

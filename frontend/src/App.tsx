@@ -35,10 +35,10 @@ function App() {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await api.filterRecipes(filters);
+      const data = await api.filterRecipes(filters); 
       setRecipes(data);
     } catch (err) {
-      setError('Failed to filter recipes. Please try again.');
+      setError('Failed to filter recipes. Please try again.'); //WE STOPPED RIGHT HERE 
       console.error('Error filtering recipes:', err);
     } finally {
       setIsLoading(false);
