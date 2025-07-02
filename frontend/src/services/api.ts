@@ -27,5 +27,21 @@ export const api = {
       throw new Error('Failed to filter recipes');
     }
     return await response.json(); //changed to await response.json() to ensure proper JSON parsing
+  },
+
+  async addRecipe(newRecipe: Omit<Recipe, 'id'>): Promise<Recipe> {
+    const response = await fetch(API_BASE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(newRecipe)
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to add recipe');
+    }
+
+    return await response.json();
   }
 }; 

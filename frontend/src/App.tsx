@@ -3,6 +3,7 @@ import { Container, Title, Group, Stack, Alert } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { FilterForm } from './components/FilterForm';
 import { RecipeList } from './components/RecipeList';
+import { AddRecipeForm } from './components/AddRecipeForm'
 import { api } from './services/api';
 import type { Recipe, FilterOptions } from './types/recipe';
 import './App.css';
@@ -90,6 +91,9 @@ function App() {
           </Group>
           <RecipeList recipes={recipes} isLoading={isLoading} />
         </div>
+
+        {/* Add Recipe */}
+        <AddRecipeForm/>
       </Stack>
     </Container>
   );
