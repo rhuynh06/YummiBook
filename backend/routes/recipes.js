@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
 });
 
 // Filter recipes
-router.get('/api/recipes/filter', async (req, res) => { //Anthony edited this line to add /api/recipes/filter
+router.get('/filter', async (req, res) => {
     const {
         cuisine,
         maxPrice,
@@ -37,11 +37,6 @@ router.get('/api/recipes/filter', async (req, res) => { //Anthony edited this li
     try {
         // Build where clause for Prisma
         const whereClause = {};
-        
-        if (cuisine && cuisine.trim() !== '') {
-            whereClause.cuisine = { contains: cuisine, mode: 'insensitive' };
-            console.log('Cuisine:', cuisine, '| Where:', whereClause); //testing, delete after
-        }
         
         if (maxPrice && !isNaN(parseFloat(maxPrice))) {
             whereClause.price = { lte: parseFloat(maxPrice) };
@@ -66,6 +61,13 @@ router.get('/api/recipes/filter', async (req, res) => { //Anthony edited this li
         let foods = await prisma.food.findMany({
             where: whereClause
         });
+
+        // Case-insensitive cuisine filter in JS
+        if (cuisine && cuisine.trim() !== '') {
+            foods = foods.filter(food =>
+                food.cuisine && food.cuisine.toLowerCase().includes(cuisine.toLowerCase())
+            );
+        }
 
         // Filter by search term if provided (search by name and ingredients)
         if (search && search.trim() !== '') {
