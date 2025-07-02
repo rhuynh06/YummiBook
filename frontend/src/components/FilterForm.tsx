@@ -101,7 +101,7 @@ export function FilterForm({ onFilter, onClear, isLoading = false }: FilterFormP
               <Slider
                 size="sm"
                 min={0}
-                max={10000}
+                max={100}
                 step={1}
                 value={filters.maxPrice || 0}
                 onChange={(value) => updateFilter('maxPrice', value)}
@@ -116,7 +116,7 @@ export function FilterForm({ onFilter, onClear, isLoading = false }: FilterFormP
               <Slider
                 size="sm"
                 min={0}
-                max={6000}
+                max={120}
                 step={5}
                 value={filters.maxPrepTime || 0}
                 onChange={(value) => updateFilter('maxPrepTime', value)}

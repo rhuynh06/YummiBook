@@ -38,10 +38,6 @@ router.get('/filter', async (req, res) => {
         // Build where clause for Prisma
         const whereClause = {};
         
-        if (cuisine && cuisine.trim() !== '') {
-            whereClause.cuisine = { contains: cuisine, mode: 'insensitive' };
-        }
-        
         if (maxPrice && !isNaN(parseFloat(maxPrice))) {
             whereClause.price = { lte: parseFloat(maxPrice) };
         }
@@ -65,6 +61,13 @@ router.get('/filter', async (req, res) => {
         let foods = await prisma.food.findMany({
             where: whereClause
         });
+
+        // Case-insensitive cuisine filter in JS
+        if (cuisine && cuisine.trim() !== '') {
+            foods = foods.filter(food =>
+                food.cuisine && food.cuisine.toLowerCase().includes(cuisine.toLowerCase())
+            );
+        }
 
         // Filter by search term if provided (search by name and ingredients)
         if (search && search.trim() !== '') {
@@ -112,6 +115,41 @@ router.get('/filter', async (req, res) => {
         console.error('Filter error:', error);
         res.status(500).json({error: 'Error fetching foods'});
     }
+});
+
+// Add Recipe
+router.post('/', async (req, res) => {
+  const {
+    name,
+    price,
+    cuisine,
+    prepTime,
+    mealTime,
+    isVegan,
+    isVegetarian,
+    ingredients,
+  } = req.body;
+
+  try {
+    const newRecipe = await prisma.food.create({
+      data: {
+        name,
+        price,
+        cuisine,
+        prepTime,
+        mealTime,
+        isVegan,
+        isVegetarian,
+        ingredients: JSON.stringify(ingredients),
+      },
+    });
+
+    newRecipe.ingredients = JSON.parse(newRecipe.ingredients || '[]');
+    res.status(201).json(newRecipe);
+  } catch (error) {
+    console.error('Error creating recipe:', error);
+    res.status(500).json({ error: 'Failed to create recipe' });
+  }
 });
 
 module.exports = router;

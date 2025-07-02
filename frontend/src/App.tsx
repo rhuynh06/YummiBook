@@ -3,6 +3,7 @@ import { Container, Title, Group, Stack, Alert } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { FilterForm } from './components/FilterForm';
 import { RecipeList } from './components/RecipeList';
+import { AddRecipeForm } from './components/AddRecipeForm'
 import { api } from './services/api';
 import type { Recipe, FilterOptions } from './types/recipe';
 import './App.css';
@@ -35,10 +36,10 @@ function App() {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await api.filterRecipes(filters);
+      const data = await api.filterRecipes(filters); 
       setRecipes(data);
     } catch (err) {
-      setError('Failed to filter recipes. Please try again.');
+      setError('Failed to filter recipes. Please try again.'); //WE STOPPED RIGHT HERE 
       console.error('Error filtering recipes:', err);
     } finally {
       setIsLoading(false);
@@ -90,6 +91,9 @@ function App() {
           </Group>
           <RecipeList recipes={recipes} isLoading={isLoading} />
         </div>
+
+        {/* Add Recipe */}
+        <AddRecipeForm/>
       </Stack>
     </Container>
   );

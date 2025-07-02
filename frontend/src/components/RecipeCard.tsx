@@ -25,7 +25,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
             {recipe.name}
           </Text>
           <Text size="sm" c="dimmed" className="capitalize">
-            {recipe.cuisine} Cuisine
+            {recipe.cuisine}
           </Text>
         </div>
 
