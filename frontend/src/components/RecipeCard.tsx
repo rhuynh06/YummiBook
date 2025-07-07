@@ -62,7 +62,7 @@ export function RecipeCard({ recipe, onEdit }: RecipeCardProps) {
 
   return (
     <>
-      <Card shadow="sm" padding="lg" radius="md" withBorder>
+      <Card shadow="sm" padding="lg" radius="md" withBorder style={{margin:"10px", maxWidth:"100%"}}>
         <Stack gap="md">
           <div>
             <Text fw={500} size="lg">{recipe.name}</Text>
@@ -92,7 +92,7 @@ export function RecipeCard({ recipe, onEdit }: RecipeCardProps) {
           </div>
 
           <Group grow>
-            <Button onClick={handleView} variant="light">View Recipe</Button>
+            <Button onClick={handleView} variant="light">Recipe</Button>
             <Button onClick={() => { setForm(recipe); setEditOpened(true); }} variant="outline">Edit</Button>
           </Group>
         </Stack>

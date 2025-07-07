@@ -13,16 +13,19 @@ import {
 } from '@mantine/core';
 import { api } from '../services/api';
 
+type MealTime = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK';
+
 export function AddRecipeForm() {
   const [form, setForm] = useState({
     name: '',
     price: 0,
     cuisine: '',
     prepTime: 0,
-    mealTime: 'LUNCH',
+    mealTime: 'LUNCH' as MealTime,
     isVegan: false,
     isVegetarian: false,
     ingredients: '',
+    instructions: '',
   });
 
   const handleChange = (field: string, value: any) => {
@@ -34,11 +37,9 @@ export function AddRecipeForm() {
     try {
       await api.addRecipe({
         ...form,
-        mealTime: form.mealTime as 'LUNCH' | 'BREAKFAST' | 'DINNER' | 'SNACK',
         ingredients: form.ingredients.split(',').map(i => i.trim()),
       });
       alert('Recipe added!');
-      // Reset form if needed
       setForm({
         name: '',
         price: 0,
@@ -48,8 +49,8 @@ export function AddRecipeForm() {
         isVegan: false,
         isVegetarian: false,
         ingredients: '',
+        instructions: '',
       });
-      // Reload page
       window.location.reload();
     } catch (err) {
       console.error(err);
@@ -112,7 +113,7 @@ export function AddRecipeForm() {
           <Select
             label="Meal Time"
             value={form.mealTime}
-            onChange={val => handleChange('mealTime', val)}
+            onChange={val => handleChange('mealTime', val as MealTime)}
             data={['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK']}
             required
           />
@@ -137,6 +138,15 @@ export function AddRecipeForm() {
             onChange={e => handleChange('ingredients', e.currentTarget.value)}
             autosize
             required
+          />
+
+          <Textarea
+            label="Instructions"
+            placeholder="Step-by-step preparation instructions"
+            value={form.instructions}
+            onChange={e => handleChange('instructions', e.currentTarget.value)}
+            autosize
+            minRows={4}
           />
 
           <Button type="submit" fullWidth>

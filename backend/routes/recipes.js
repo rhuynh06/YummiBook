@@ -145,6 +145,7 @@ router.post('/', async (req, res) => {
     isVegan,
     isVegetarian,
     ingredients,
+    instructions
   } = req.body;
 
   try {
@@ -158,6 +159,7 @@ router.post('/', async (req, res) => {
         isVegan,
         isVegetarian,
         ingredients: JSON.stringify(ingredients),
+        instructions
       },
     });
 
