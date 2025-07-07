@@ -8,14 +8,16 @@ import {
   Button,
   Group,
   Stack,
-  Card,
-  Title,
 } from '@mantine/core';
 import { api } from '../services/api';
 
 type MealTime = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK';
 
-export function AddRecipeForm() {
+interface AddRecipeFormProps {
+  onAdded?: () => void;
+}
+
+export function AddRecipeForm({ onAdded }: AddRecipeFormProps) {
   const [form, setForm] = useState({
     name: '',
     price: 0,
@@ -51,7 +53,7 @@ export function AddRecipeForm() {
         ingredients: '',
         instructions: '',
       });
-      window.location.reload();
+      onAdded?.(); // Notify parent to reload recipes and close modal
     } catch (err) {
       console.error(err);
       alert('Failed to add recipe');
@@ -59,101 +61,98 @@ export function AddRecipeForm() {
   };
 
   return (
-    <Card shadow="sm" padding="lg" radius="md" withBorder maw={500} mx="auto">
-      <form onSubmit={handleSubmit}>
-        <Stack gap="sm">
-          <Title order={4}>Add New Recipe</Title>
+    <form onSubmit={handleSubmit}>
+      <Stack gap="sm">
+        {/* Remove Title here since Modal already has it */}
+        <TextInput
+          label="Recipe Name"
+          placeholder="e.g. Tofu Tacos"
+          value={form.name}
+          onChange={e => handleChange('name', e.currentTarget.value)}
+          required
+        />
 
-          <TextInput
-            label="Recipe Name"
-            placeholder="e.g. Tofu Tacos"
-            value={form.name}
-            onChange={e => handleChange('name', e.currentTarget.value)}
-            required
+        <Select
+          label="Cuisine"
+          placeholder="Select a cuisine"
+          value={form.cuisine}
+          onChange={val => handleChange('cuisine', val)}
+          data={[
+            { value: 'ITALIAN', label: 'Italian' },
+            { value: 'MEXICAN', label: 'Mexican' },
+            { value: 'VIETNAMESE', label: 'Vietnamese' },
+            { value: 'CHINESE', label: 'Chinese' },
+            { value: 'INDIAN', label: 'Indian' },
+            { value: 'JAPANESE', label: 'Japanese' },
+            { value: 'THAI', label: 'Thai' },
+            { value: 'FRENCH', label: 'French' },
+            { value: 'MEDITERRANEAN', label: 'Mediterranean' },
+            { value: 'AMERICAN', label: 'American' },
+          ]}
+          searchable
+          clearable
+          required
+        />
+
+        <NumberInput
+          label="Price ($)"
+          value={form.price}
+          onChange={val => handleChange('price', val ?? 0)}
+          min={0}
+          required
+        />
+
+        <NumberInput
+          label="Prep Time (minutes)"
+          value={form.prepTime}
+          onChange={val => handleChange('prepTime', val ?? 0)}
+          min={0}
+          required
+        />
+
+        <Select
+          label="Meal Time"
+          value={form.mealTime}
+          onChange={val => handleChange('mealTime', val as MealTime)}
+          data={['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK']}
+          required
+        />
+
+        <Group gap="md">
+          <Checkbox
+            label="Vegan"
+            checked={form.isVegan}
+            onChange={e => handleChange('isVegan', e.currentTarget.checked)}
           />
-
-          <Select
-            label="Cuisine"
-            placeholder="Select a cuisine"
-            value={form.cuisine}
-            onChange={val => handleChange('cuisine', val)}
-            data={[
-              { value: 'ITALIAN', label: 'Italian' },
-              { value: 'MEXICAN', label: 'Mexican' },
-              { value: 'VIETNAMESE', label: 'Vietnamese' },
-              { value: 'CHINESE', label: 'Chinese' },
-              { value: 'INDIAN', label: 'Indian' },
-              { value: 'JAPANESE', label: 'Japanese' },
-              { value: 'THAI', label: 'Thai' },
-              { value: 'FRENCH', label: 'French' },
-              { value: 'MEDITERRANEAN', label: 'Mediterranean' },
-              { value: 'AMERICAN', label: 'American' },
-            ]}
-            searchable
-            clearable
-            required
+          <Checkbox
+            label="Vegetarian"
+            checked={form.isVegetarian}
+            onChange={e => handleChange('isVegetarian', e.currentTarget.checked)}
           />
+        </Group>
 
-          <NumberInput
-            label="Price ($)"
-            value={form.price}
-            onChange={val => handleChange('price', val ?? 0)}
-            min={0}
-            required
-          />
+        <Textarea
+          label="Ingredients (comma-separated)"
+          placeholder="e.g. tofu, lettuce, tomato"
+          value={form.ingredients}
+          onChange={e => handleChange('ingredients', e.currentTarget.value)}
+          autosize
+          required
+        />
 
-          <NumberInput
-            label="Prep Time (minutes)"
-            value={form.prepTime}
-            onChange={val => handleChange('prepTime', val ?? 0)}
-            min={0}
-            required
-          />
+        <Textarea
+          label="Instructions"
+          placeholder="Step-by-step preparation instructions"
+          value={form.instructions}
+          onChange={e => handleChange('instructions', e.currentTarget.value)}
+          autosize
+          minRows={4}
+        />
 
-          <Select
-            label="Meal Time"
-            value={form.mealTime}
-            onChange={val => handleChange('mealTime', val as MealTime)}
-            data={['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK']}
-            required
-          />
-
-          <Group gap="md">
-            <Checkbox
-              label="Vegan"
-              checked={form.isVegan}
-              onChange={e => handleChange('isVegan', e.currentTarget.checked)}
-            />
-            <Checkbox
-              label="Vegetarian"
-              checked={form.isVegetarian}
-              onChange={e => handleChange('isVegetarian', e.currentTarget.checked)}
-            />
-          </Group>
-
-          <Textarea
-            label="Ingredients (comma-separated)"
-            placeholder="e.g. tofu, lettuce, tomato"
-            value={form.ingredients}
-            onChange={e => handleChange('ingredients', e.currentTarget.value)}
-            autosize
-            required
-          />
-
-          <Textarea
-            label="Instructions"
-            placeholder="Step-by-step preparation instructions"
-            value={form.instructions}
-            onChange={e => handleChange('instructions', e.currentTarget.value)}
-            autosize
-            minRows={4}
-          />
-
-          <Button type="submit" fullWidth>
-            Add Recipe
-          </Button>
-        </Stack>
-      </form>
-    </Card>
+        <Button type="submit" fullWidth>
+          Add Recipe
+        </Button>
+      </Stack>
+    </form>
   );
 }

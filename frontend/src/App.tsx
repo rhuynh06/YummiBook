@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Container, Title, Group, Stack, Alert } from '@mantine/core';
+import { Container, Title, Group, Stack, Alert, Button, Modal } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { FilterForm } from './components/FilterForm';
 import { RecipeList } from './components/RecipeList';
-import { AddRecipeForm } from './components/AddRecipeForm'
+import { AddRecipeForm } from './components/AddRecipeForm';
 import { api } from './services/api';
 import type { Recipe, FilterOptions } from './types/recipe';
 import './App.css';
@@ -12,8 +12,8 @@ function App() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [addModalOpened, setAddModalOpened] = useState(false);
 
-  // Load all recipes on component mount
   useEffect(() => {
     loadAllRecipes();
   }, []);
@@ -36,10 +36,10 @@ function App() {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await api.filterRecipes(filters); 
+      const data = await api.filterRecipes(filters);
       setRecipes(data);
     } catch (err) {
-      setError('Failed to filter recipes. Please try again.'); //WE STOPPED RIGHT HERE 
+      setError('Failed to filter recipes. Please try again.');
       console.error('Error filtering recipes:', err);
     } finally {
       setIsLoading(false);
@@ -50,10 +50,15 @@ function App() {
     loadAllRecipes();
   };
 
+  // Reload recipes after adding new one
+  const handleRecipeAdded = () => {
+    setAddModalOpened(false);
+    loadAllRecipes();
+  };
+
   return (
     <Container size="xl" className="py-8">
       <Stack gap="xl">
-        {/* Header */}
         <div className="text-center">
           <Title order={1} className="text-4xl font-bold text-gray-800 mb-2">
             🍳 CookBook
@@ -63,37 +68,34 @@ function App() {
           </p>
         </div>
 
-        {/* Error Alert */}
         {error && (
-          <Alert 
-            icon={<IconAlertCircle size={16} />} 
-            title="Error" 
-            color="red"
-            variant="light"
-          >
+          <Alert icon={<IconAlertCircle size={16} />} title="Error" color="red" variant="light">
             {error}
           </Alert>
         )}
 
-        {/* Filters - Full Width */}
-        <FilterForm 
-          onFilter={handleFilter}
-          onClear={handleClearFilters}
-          isLoading={isLoading}
-        />
+        <FilterForm onFilter={handleFilter} onClear={handleClearFilters} isLoading={isLoading} />
 
-        {/* Recipe List */}
         <div>
           <Group justify="space-between" className="mb-6">
             <Title order={2} className="text-2xl font-semibold">
               Recipes ({recipes.length})
             </Title>
+            <Button onClick={() => setAddModalOpened(true)}>Add Recipe</Button>
           </Group>
           <RecipeList recipes={recipes} isLoading={isLoading} />
         </div>
 
-        {/* Add Recipe */}
-        <AddRecipeForm/>
+        {/* Add Recipe Modal */}
+        <Modal
+          opened={addModalOpened}
+          onClose={() => setAddModalOpened(false)}
+          title="Add New Recipe"
+          size="lg"
+          centered
+        >
+          <AddRecipeForm onAdded={handleRecipeAdded} />
+        </Modal>
       </Stack>
     </Container>
   );

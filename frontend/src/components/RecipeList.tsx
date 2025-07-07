@@ -1,29 +1,14 @@
 // src/components/RecipeList.tsx
-import React, { useEffect, useState } from 'react';
 import { SimpleGrid, Text, Center, Loader } from '@mantine/core';
 import { RecipeCard } from './RecipeCard';
 import type { Recipe } from '../types/recipe';
 
-export function RecipeList() {
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+interface RecipeListProps {
+  recipes: Recipe[];
+  isLoading: boolean;
+}
 
-  useEffect(() => {
-    const fetchRecipes = async () => {
-      try {
-        const res = await fetch('/api/recipes');
-        const data = await res.json();
-        setRecipes(data);
-      } catch (err) {
-        console.error('Failed to fetch recipes', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchRecipes();
-  }, []);
-
+export function RecipeList({ recipes, isLoading }: RecipeListProps) {
   const handleEdit = async (updated: Recipe) => {
     try {
       const res = await fetch(`/api/recipes/${updated.id}`, {
@@ -32,10 +17,7 @@ export function RecipeList() {
         body: JSON.stringify(updated),
       });
 
-      const saved = await res.json();
-      setRecipes((prev) =>
-        prev.map((r) => (r.id === saved.id ? saved : r))
-      );
+      window.location.reload();
     } catch (err) {
       console.error('Failed to update recipe', err);
     }
