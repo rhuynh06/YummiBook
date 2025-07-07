@@ -1,13 +1,15 @@
+// src/types/recipe.ts
 export interface Recipe {
   id: number;
   name: string;
   price: number;
   cuisine: string;
   prepTime: number;
-  mealTime: 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK';
+  mealTime: string;
   isVegan: boolean;
   isVegetarian: boolean;
   ingredients: string[];
+  instructions?: string;
 }
 
 export interface FilterOptions {

@@ -4,7 +4,7 @@ const prisma = new PrismaClient()
 async function main() {
   // Clear existing data first
   await prisma.food.deleteMany({})
-  
+
   await prisma.food.createMany({
     data: [
       {
@@ -15,7 +15,8 @@ async function main() {
         mealTime: "LUNCH",
         isVegan: true,
         isVegetarian: true,
-        ingredients: JSON.stringify(["avocado", "bread", "salt"])
+        ingredients: JSON.stringify(["avocado", "bread", "salt"]),
+        instructions: "Mash the avocado and season with salt. Spread on bread and serve as tacos."
       },
       {
         name: "Marvin Gyro",
@@ -25,7 +26,8 @@ async function main() {
         mealTime: "LUNCH",
         isVegan: false,
         isVegetarian: false,
-        ingredients: JSON.stringify(["flatbread", "lettuce", "lamb", "fries", "sour cream"])
+        ingredients: JSON.stringify(["flatbread", "lettuce", "lamb", "fries", "sour cream"]),
+        instructions: "Place lamb and fries on flatbread with lettuce and sour cream. Wrap and enjoy."
       },
       {
         name: "Ryan Bun Bo Hue",
@@ -43,7 +45,8 @@ async function main() {
           "vegetables",
           "lemon",
           "chili oil"
-        ])
+        ]),
+        instructions: "Simmer beef bones with lemongrass for hours. Add noodles, herbs, vegetables, lemon, and chili oil to serve."
       }
     ]
   })
@@ -58,4 +61,4 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect()
-  })
+  });

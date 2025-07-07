@@ -12,6 +12,14 @@ export const api = {
     return response.json();
   },
 
+  async getRecipeByID(id: number): Promise<Recipe[]> {
+    const response = await fetch(`${API_BASE_URL}/${id}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch recipe by id');
+    }
+    return response.json();
+  },
+
   // Filter recipes
   async filterRecipes(filters: FilterOptions): Promise<Recipe[]> {
     const params = new URLSearchParams();

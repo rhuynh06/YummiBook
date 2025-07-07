@@ -6,7 +6,7 @@ const {PrismaClient} = require("../generated/prisma");
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Get all recipes
+// Get All Recipes
 router.get('/', async (req, res) => {
     try {
         const foods = await prisma.food.findMany();
@@ -22,7 +22,24 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Filter recipes
+// Get Food Recipe
+router.get('/:id', async (req, res) => {
+  const id = parseInt(req.params.id);
+  try {
+    const recipe = await prisma.food.findUnique({
+      where: { id }
+    });
+
+    if (!recipe) return res.status(404).json({ error: 'Recipe not found' });
+
+    recipe.ingredients = JSON.parse(recipe.ingredients || '[]');
+    res.json(recipe);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Filter Recipes
 router.get('/filter', async (req, res) => {
     const {
         cuisine,
@@ -149,6 +166,45 @@ router.post('/', async (req, res) => {
   } catch (error) {
     console.error('Error creating recipe:', error);
     res.status(500).json({ error: 'Failed to create recipe' });
+  }
+});
+
+// Update Recipe
+router.put('/:id', async (req, res) => {
+  const id = parseInt(req.params.id);
+  const {
+    name,
+    price,
+    cuisine,
+    prepTime,
+    mealTime,
+    isVegan,
+    isVegetarian,
+    ingredients,
+    instructions
+  } = req.body;
+
+  try {
+    const updatedRecipe = await prisma.food.update({
+      where: { id },
+      data: {
+        name,
+        price,
+        cuisine,
+        prepTime,
+        mealTime,
+        isVegan,
+        isVegetarian,
+        ingredients: JSON.stringify(ingredients),
+        instructions,
+      },
+    });
+
+    updatedRecipe.ingredients = JSON.parse(updatedRecipe.ingredients || '[]');
+    res.json(updatedRecipe);
+  } catch (error) {
+    console.error('Error updating recipe:', error);
+    res.status(500).json({ error: 'Failed to update recipe' });
   }
 });
 

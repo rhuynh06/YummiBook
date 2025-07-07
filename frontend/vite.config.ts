@@ -8,5 +8,13 @@ export default defineConfig({
   build: {
     outDir: "./docs",
     emptyOutDir: true
-  }
+  },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5050',
+        changeOrigin: true,
+      },
+    },
+  },
 })

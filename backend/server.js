@@ -9,7 +9,7 @@ app.use(express.json());
 
 // Routes
 app.get('/', (req, res) => {
-    res.send('Hello, world!');
+    res.send('Working');
 });
 
 // Import and use recipes route
