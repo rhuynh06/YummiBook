@@ -40,7 +40,7 @@ function App() {
       const data = await api.getAllRecipes();
       setRecipes(data);
     } catch (err) {
-      setError('Failed to load recipes. Please try again later.');
+      setError('Failed to load recipes. Please try again in a moment. If the issue continues, contact support at ryanhuynh200604@gmail.com or reach out on GitHub (@rhuynh06).');
       console.error('Error loading recipes:', err);
     } finally {
       setIsLoading(false);
