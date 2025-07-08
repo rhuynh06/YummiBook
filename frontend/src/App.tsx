@@ -86,7 +86,6 @@ function App() {
           <RecipeList recipes={recipes} isLoading={isLoading} />
         </div>
 
-        {/* Add Recipe Modal */}
         <Modal
           opened={addModalOpened}
           onClose={() => setAddModalOpened(false)}

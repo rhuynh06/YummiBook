@@ -63,7 +63,6 @@ export function AddRecipeForm({ onAdded }: AddRecipeFormProps) {
   return (
     <form onSubmit={handleSubmit}>
       <Stack gap="sm">
-        {/* Remove Title here since Modal already has it */}
         <TextInput
           label="Recipe Name"
           placeholder="e.g. Tofu Tacos"

@@ -8,34 +8,17 @@ const prisma = new PrismaClient();
 
 // Get All Recipes
 router.get('/', async (req, res) => {
-    try {
-        const foods = await prisma.food.findMany();
-        // Parse ingredients JSON string to array for frontend
-        const foodsWithParsedIngredients = foods.map(food => ({
-            ...food,
-            ingredients: JSON.parse(food.ingredients || '[]')
-        }));
-        res.json(foodsWithParsedIngredients);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({error: 'Error fetching foods'});
-    }
-});
-
-// Get Food Recipe
-router.get('/:id', async (req, res) => {
-  const id = parseInt(req.params.id);
   try {
-    const recipe = await prisma.food.findUnique({
-      where: { id }
-    });
-
-    if (!recipe) return res.status(404).json({ error: 'Recipe not found' });
-
-    recipe.ingredients = JSON.parse(recipe.ingredients || '[]');
-    res.json(recipe);
-  } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+      const foods = await prisma.food.findMany();
+      // Parse ingredients JSON string to array for frontend
+      const foodsWithParsedIngredients = foods.map(food => ({
+          ...food,
+          ingredients: JSON.parse(food.ingredients || '[]')
+      }));
+      res.json(foodsWithParsedIngredients);
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({error: 'Error fetching foods'});
   }
 });
 
@@ -132,6 +115,23 @@ router.get('/filter', async (req, res) => {
         console.error('Filter error:', error);
         res.status(500).json({error: 'Error fetching foods'});
     }
+});
+
+// Get Food Recipe
+router.get('/:id', async (req, res) => {
+  const id = parseInt(req.params.id);
+  try {
+    const recipe = await prisma.food.findUnique({
+      where: { id }
+    });
+
+    if (!recipe) return res.status(404).json({ error: 'Recipe not found' });
+
+    recipe.ingredients = JSON.parse(recipe.ingredients || '[]');
+    res.json(recipe);
+  } catch (err) {
+    res.status(500).json({ error: 'RAAWR' });
+  }
 });
 
 // Add Recipe

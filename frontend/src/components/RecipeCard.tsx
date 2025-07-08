@@ -1,5 +1,4 @@
-// src/components/RecipeCard.tsx
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Card,
   Text,
@@ -14,6 +13,7 @@ import {
 } from '@mantine/core';
 import { IconClock, IconCurrencyDollar } from '@tabler/icons-react';
 import type { Recipe } from '../types/recipe';
+import { api } from '../services/api';
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -38,16 +38,12 @@ export function RecipeCard({ recipe, onEdit }: RecipeCardProps) {
 
   const handleView = async () => {
     try {
-      const res = await fetch(`/api/recipes/${recipe.id}`);
-      const data = await res.json();
-      setFullRecipe({
-        ...data,
-        ingredients: data.ingredients || [],
-        instructions: data.instructions || '',
-      });
+      const data = await api.getRecipeByID(recipe.id);
+      setFullRecipe(data);
       setViewOpened(true);
     } catch (err) {
       console.error('Error fetching recipe details', err);
+      alert('Failed to load recipe details');
     }
   };
 
@@ -55,14 +51,35 @@ export function RecipeCard({ recipe, onEdit }: RecipeCardProps) {
     setForm((f) => ({ ...f, [field]: value }));
   };
 
-  const handleSave = () => {
-    onEdit?.(form);
-    setEditOpened(false);
+  const handleSave = async () => {
+    try {
+      const updated = await api.updateRecipe(form.id, {
+        name: form.name,
+        price: form.price,
+        cuisine: form.cuisine,
+        prepTime: form.prepTime,
+        mealTime: form.mealTime,
+        isVegan: form.isVegan,
+        isVegetarian: form.isVegetarian,
+        ingredients: form.ingredients,
+        instructions: form.instructions,
+      });
+
+      setForm(updated);
+      setFullRecipe(updated);
+      setEditOpened(false);
+
+      // Notify parent to update list or do something with updated recipe
+      onEdit?.(updated);
+    } catch (err) {
+      console.error('Failed to update recipe', err);
+      alert('Failed to update recipe. Please try again.');
+    }
   };
 
   return (
     <>
-      <Card shadow="sm" padding="lg" radius="md" withBorder style={{margin:"10px", maxWidth:"100%"}}>
+      <Card shadow="sm" padding="lg" radius="md" withBorder style={{ margin: '10px', maxWidth: '100%' }}>
         <Stack gap="md">
           <div>
             <Text fw={500} size="lg">{recipe.name}</Text>
@@ -99,7 +116,7 @@ export function RecipeCard({ recipe, onEdit }: RecipeCardProps) {
       </Card>
 
       {/* View Modal */}
-      <Modal opened={viewOpened} onClose={() => setViewOpened(false)} title={fullRecipe.name} size="lg">
+      <Modal opened={viewOpened} onClose={() => setViewOpened(false)} title={fullRecipe.name} size="lg" centered>
         <Stack>
           <Text><strong>Cuisine:</strong> {fullRecipe.cuisine}</Text>
           <Text><strong>Meal Time:</strong> {fullRecipe.mealTime}</Text>
@@ -119,13 +136,27 @@ export function RecipeCard({ recipe, onEdit }: RecipeCardProps) {
       </Modal>
 
       {/* Edit Modal */}
-      <Modal opened={editOpened} onClose={() => setEditOpened(false)} title={`Edit: ${form.name}`} size="lg">
+      <Modal opened={editOpened} onClose={() => setEditOpened(false)} title={`Edit: ${form.name}`} size="lg" centered>
         <Stack>
           <TextInput label="Name" value={form.name} onChange={(e) => handleChange('name', e.currentTarget.value)} />
           <TextInput label="Cuisine" value={form.cuisine} onChange={(e) => handleChange('cuisine', e.currentTarget.value)} />
-          <TextInput label="Meal Time" value={form.mealTime} onChange={(e) => handleChange('mealTime', e.currentTarget.value.toUpperCase())} />
-          <TextInput label="Prep Time" type="number" value={form.prepTime} onChange={(e) => handleChange('prepTime', Number(e.currentTarget.value))} />
-          <TextInput label="Price" type="number" value={form.price} onChange={(e) => handleChange('price', Number(e.currentTarget.value))} />
+          <TextInput
+            label="Meal Time"
+            value={form.mealTime}
+            onChange={(e) => handleChange('mealTime', e.currentTarget.value.toUpperCase())}
+          />
+          <TextInput
+            label="Prep Time"
+            type="number"
+            value={form.prepTime}
+            onChange={(e) => handleChange('prepTime', Number(e.currentTarget.value))}
+          />
+          <TextInput
+            label="Price"
+            type="number"
+            value={form.price}
+            onChange={(e) => handleChange('price', Number(e.currentTarget.value))}
+          />
           <Textarea
             label="Ingredients (comma separated)"
             value={form.ingredients.join(', ')}

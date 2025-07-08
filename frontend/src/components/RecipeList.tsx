@@ -1,4 +1,3 @@
-// src/components/RecipeList.tsx
 import { SimpleGrid, Text, Center, Loader } from '@mantine/core';
 import { RecipeCard } from './RecipeCard';
 import type { Recipe } from '../types/recipe';
