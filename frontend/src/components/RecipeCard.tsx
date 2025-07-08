@@ -18,9 +18,18 @@ import { api } from '../services/api';
 interface RecipeCardProps {
   recipe: Recipe;
   onEdit?: (updatedRecipe: Recipe) => void;
+  deleteMode?: boolean;
+  isSelectedForDelete?: boolean;
+  onSelectDelete?: () => void;
 }
 
-export function RecipeCard({ recipe, onEdit }: RecipeCardProps) {
+export function RecipeCard({
+  recipe,
+  onEdit,
+  deleteMode = false,
+  isSelectedForDelete = false,
+  onSelectDelete,
+}: RecipeCardProps) {
   const [viewOpened, setViewOpened] = useState(false);
   const [editOpened, setEditOpened] = useState(false);
   const [fullRecipe, setFullRecipe] = useState<Recipe>(recipe);
@@ -69,7 +78,6 @@ export function RecipeCard({ recipe, onEdit }: RecipeCardProps) {
       setFullRecipe(updated);
       setEditOpened(false);
 
-      // Notify parent to update list or do something with updated recipe
       onEdit?.(updated);
     } catch (err) {
       console.error('Failed to update recipe', err);
@@ -79,15 +87,42 @@ export function RecipeCard({ recipe, onEdit }: RecipeCardProps) {
 
   return (
     <>
-      <Card shadow="sm" padding="lg" radius="md" withBorder style={{ margin: '10px', maxWidth: '100%' }}>
+      <Card
+        shadow="sm"
+        padding="lg"
+        radius="md"
+        withBorder
+        style={{
+          margin: '10px',
+          maxWidth: '100%',
+          cursor: deleteMode ? 'pointer' : 'default',
+          borderColor: isSelectedForDelete ? '#f03e3e' : undefined,
+          backgroundColor: isSelectedForDelete ? '#fff5f5' : undefined,
+          userSelect: 'none',
+        }}
+        onClick={() => {
+          if (deleteMode && onSelectDelete) {
+            onSelectDelete();
+          }
+        }}
+        tabIndex={deleteMode ? 0 : undefined}
+        role={deleteMode ? 'button' : undefined}
+        aria-pressed={isSelectedForDelete}
+      >
         <Stack gap="md">
           <div>
-            <Text fw={500} size="lg">{recipe.name}</Text>
-            <Text size="sm" c="dimmed">{recipe.cuisine}</Text>
+            <Text fw={500} size="lg">
+              {recipe.name}
+            </Text>
+            <Text size="sm" c="dimmed">
+              {recipe.cuisine}
+            </Text>
           </div>
 
           <Group gap="xs">
-            <Badge color={getMealTimeColor(recipe.mealTime)}>{recipe.mealTime}</Badge>
+            <Badge color={getMealTimeColor(recipe.mealTime)}>
+              {recipe.mealTime}
+            </Badge>
             {recipe.isVegan && <Badge color="green">Vegan</Badge>}
             {recipe.isVegetarian && <Badge color="teal">Vegetarian</Badge>}
           </Group>
@@ -104,27 +139,61 @@ export function RecipeCard({ recipe, onEdit }: RecipeCardProps) {
           </Group>
 
           <div>
-            <Text size="sm" fw={500}>Ingredients:</Text>
-            <Text size="sm" c="dimmed" lineClamp={3}>{recipe.ingredients.join(', ')}</Text>
+            <Text size="sm" fw={500}>
+              Ingredients:
+            </Text>
+            <Text size="sm" c="dimmed" lineClamp={3}>
+              {recipe.ingredients.join(', ')}
+            </Text>
           </div>
 
-          <Group grow>
-            <Button onClick={handleView} variant="light">Recipe</Button>
-            <Button onClick={() => { setForm(recipe); setEditOpened(true); }} variant="outline">Edit</Button>
-          </Group>
+          {!deleteMode && (
+            <Group grow>
+              <Button onClick={handleView} variant="light">
+                Recipe
+              </Button>
+              <Button
+                onClick={() => {
+                  setForm(recipe);
+                  setEditOpened(true);
+                }}
+                variant="outline"
+              >
+                Edit
+              </Button>
+            </Group>
+          )}
         </Stack>
       </Card>
 
       {/* View Modal */}
-      <Modal opened={viewOpened} onClose={() => setViewOpened(false)} title={fullRecipe.name} size="lg" centered>
+      <Modal
+        opened={viewOpened}
+        onClose={() => setViewOpened(false)}
+        title={fullRecipe.name}
+        size="lg"
+        centered
+      >
         <Stack>
-          <Text><strong>Cuisine:</strong> {fullRecipe.cuisine}</Text>
-          <Text><strong>Meal Time:</strong> {fullRecipe.mealTime}</Text>
-          <Text><strong>Preparation Time:</strong> {fullRecipe.prepTime} min</Text>
-          <Text><strong>Price:</strong> ${fullRecipe.price.toFixed(2)}</Text>
-          <Text><strong>Ingredients:</strong></Text>
+          <Text>
+            <strong>Cuisine:</strong> {fullRecipe.cuisine}
+          </Text>
+          <Text>
+            <strong>Meal Time:</strong> {fullRecipe.mealTime}
+          </Text>
+          <Text>
+            <strong>Preparation Time:</strong> {fullRecipe.prepTime} min
+          </Text>
+          <Text>
+            <strong>Price:</strong> ${fullRecipe.price.toFixed(2)}
+          </Text>
+          <Text>
+            <strong>Ingredients:</strong>
+          </Text>
           <ul>
-            {fullRecipe.ingredients.map((ing, i) => <li key={i}>{ing}</li>)}
+            {fullRecipe.ingredients.map((ing, i) => (
+              <li key={i}>{ing}</li>
+            ))}
           </ul>
           {fullRecipe.instructions && (
             <>
@@ -136,14 +205,30 @@ export function RecipeCard({ recipe, onEdit }: RecipeCardProps) {
       </Modal>
 
       {/* Edit Modal */}
-      <Modal opened={editOpened} onClose={() => setEditOpened(false)} title={`Edit: ${form.name}`} size="lg" centered>
+      <Modal
+        opened={editOpened}
+        onClose={() => setEditOpened(false)}
+        title={`Edit: ${form.name}`}
+        size="lg"
+        centered
+      >
         <Stack>
-          <TextInput label="Name" value={form.name} onChange={(e) => handleChange('name', e.currentTarget.value)} />
-          <TextInput label="Cuisine" value={form.cuisine} onChange={(e) => handleChange('cuisine', e.currentTarget.value)} />
+          <TextInput
+            label="Name"
+            value={form.name}
+            onChange={(e) => handleChange('name', e.currentTarget.value)}
+          />
+          <TextInput
+            label="Cuisine"
+            value={form.cuisine}
+            onChange={(e) => handleChange('cuisine', e.currentTarget.value)}
+          />
           <TextInput
             label="Meal Time"
             value={form.mealTime}
-            onChange={(e) => handleChange('mealTime', e.currentTarget.value.toUpperCase())}
+            onChange={(e) =>
+              handleChange('mealTime', e.currentTarget.value.toUpperCase())
+            }
           />
           <TextInput
             label="Prep Time"
@@ -160,17 +245,32 @@ export function RecipeCard({ recipe, onEdit }: RecipeCardProps) {
           <Textarea
             label="Ingredients (comma separated)"
             value={form.ingredients.join(', ')}
-            onChange={(e) => handleChange('ingredients', e.currentTarget.value.split(',').map(s => s.trim()))}
+            onChange={(e) =>
+              handleChange(
+                'ingredients',
+                e.currentTarget.value.split(',').map((s) => s.trim())
+              )
+            }
           />
           <Textarea
             label="Instructions"
             value={form.instructions || ''}
             onChange={(e) => handleChange('instructions', e.currentTarget.value)}
           />
-          <Checkbox label="Vegan" checked={form.isVegan} onChange={(e) => handleChange('isVegan', e.currentTarget.checked)} />
-          <Checkbox label="Vegetarian" checked={form.isVegetarian} onChange={(e) => handleChange('isVegetarian', e.currentTarget.checked)} />
+          <Checkbox
+            label="Vegan"
+            checked={form.isVegan}
+            onChange={(e) => handleChange('isVegan', e.currentTarget.checked)}
+          />
+          <Checkbox
+            label="Vegetarian"
+            checked={form.isVegetarian}
+            onChange={(e) => handleChange('isVegetarian', e.currentTarget.checked)}
+          />
           <Group justify="flex-end" mt="md">
-            <Button variant="default" onClick={() => setEditOpened(false)}>Cancel</Button>
+            <Button variant="default" onClick={() => setEditOpened(false)}>
+              Cancel
+            </Button>
             <Button onClick={handleSave}>Save</Button>
           </Group>
         </Stack>

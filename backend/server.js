@@ -20,6 +20,7 @@ app.use(cors({
 
 app.use(express.json());
 
+// for debugging purposes:
 app.get('/', (req, res) => {
   res.send('Working');
 });

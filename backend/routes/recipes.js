@@ -210,4 +210,32 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// Delete Recipe (only allowed from localhost for management purposes)
+router.delete('/:id', async (req, res) => {
+  const clientIp = req.ip || req.connection.remoteAddress;
+  if (
+    clientIp !== '::1' &&
+    clientIp !== '127.0.0.1' &&
+    !clientIp.startsWith('::ffff:127.0.0.1')
+  ) {
+    return res.status(403).json({ error: 'Delete allowed only on localhost' });
+  }
+
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) return res.status(400).json({ error: 'Invalid recipe id' });
+
+  try {
+    // Check if recipe exists before deleting
+    const existing = await prisma.food.findUnique({ where: { id } });
+    if (!existing) return res.status(404).json({ error: 'Recipe not found' });
+
+    await prisma.food.delete({ where: { id } });
+    res.json({ message: 'Recipe deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting recipe:', error);
+    res.status(500).json({ error: 'Failed to delete recipe' });
+  }
+});
+
+
 module.exports = router;

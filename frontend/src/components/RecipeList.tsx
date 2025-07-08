@@ -1,48 +1,46 @@
-import { SimpleGrid, Text, Center, Loader } from '@mantine/core';
-import { RecipeCard } from './RecipeCard';
+import { SimpleGrid, Text, Center } from '@mantine/core';
 import type { Recipe } from '../types/recipe';
-import { api } from '../services/api';
+import { RecipeCard } from './RecipeCard';
 
-interface RecipeListProps {
+type RecipeListProps = {
   recipes: Recipe[];
   isLoading: boolean;
-}
+  deleteMode?: boolean;
+  onSelectDelete?: (recipe: Recipe) => void;
+  selectedRecipeId?: number | null;
+};
 
-export function RecipeList({ recipes, isLoading }: RecipeListProps) {
-  const handleEdit = async (updated: Recipe) => {
-    try {
-      const { id, ...updatedRecipe } = updated;  // id removed from updatedRecipe object
-
-      await api.updateRecipe(id, updatedRecipe);
-
-      window.location.reload();
-    } catch (err) {
-      console.error('Failed to update recipe', err);
-    }
-  };
-
-  if (isLoading) {
+export function RecipeList({
+  recipes,
+  isLoading,
+  deleteMode = false,
+  onSelectDelete,
+  selectedRecipeId,
+}: RecipeListProps) {
+  if (isLoading)
     return (
-      <Center className="py-12">
-        <Loader size="lg" />
+      <Center style={{ height: 200 }}>
+        <Text>Loading...</Text>
       </Center>
     );
-  }
 
-  if (recipes.length === 0) {
+  if (recipes.length === 0)
     return (
-      <Center className="py-12">
-        <Text size="lg" c="dimmed">
-          No recipes found.
-        </Text>
+      <Center style={{ height: 200 }}>
+        <Text>No recipes found.</Text>
       </Center>
     );
-  }
 
   return (
     <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="lg">
       {recipes.map((recipe) => (
-        <RecipeCard key={recipe.id} recipe={recipe} onEdit={handleEdit} />
+        <RecipeCard
+          key={recipe.id}
+          recipe={recipe}
+          deleteMode={deleteMode}
+          isSelectedForDelete={recipe.id === selectedRecipeId}
+          onSelectDelete={onSelectDelete ? () => onSelectDelete(recipe) : undefined}
+        />
       ))}
     </SimpleGrid>
   );

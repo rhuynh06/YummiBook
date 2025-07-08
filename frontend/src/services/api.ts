@@ -38,7 +38,7 @@ export const api = {
     return await response.json();
   },
 
-  // Add Recipe
+  // Add a new recipe
   async addRecipe(newRecipe: Omit<Recipe, 'id'>): Promise<Recipe> {
     const response = await fetch(`${site}/api/recipes`, {
       method: 'POST',
@@ -56,8 +56,8 @@ export const api = {
     return await response.json();
   },
 
-  // Edit Recipe
- async updateRecipe(id: number, updatedRecipe: Omit<Recipe, 'id'>): Promise<Recipe> {
+  // Update an existing recipe
+  async updateRecipe(id: number, updatedRecipe: Omit<Recipe, 'id'>): Promise<Recipe> {
     const response = await fetch(`${site}/api/recipes/${id}`, {
       method: 'PUT',
       headers: {
@@ -71,5 +71,16 @@ export const api = {
     }
 
     return await response.json();
+  },
+
+  // Delete a recipe (only works on localhost backend)
+  async deleteRecipe(id: number): Promise<void> {
+    const response = await fetch(`${site}/api/recipes/${id}`, {
+      method: 'DELETE'
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete recipe');
+    }
   }
 };
