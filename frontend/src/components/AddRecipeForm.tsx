@@ -10,6 +10,7 @@ import {
   Stack,
 } from '@mantine/core';
 import { api } from '../services/api';
+import { cuisineOptions } from '../types/recipe';
 
 type MealTime = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK';
 
@@ -41,7 +42,7 @@ export function AddRecipeForm({ onAdded }: AddRecipeFormProps) {
         ...form,
         ingredients: form.ingredients.split(',').map(i => i.trim()),
       });
-      alert('Recipe added!');
+      // alert('Recipe added!');
       setForm({
         name: '',
         price: 0,
@@ -76,18 +77,7 @@ export function AddRecipeForm({ onAdded }: AddRecipeFormProps) {
           placeholder="Select a cuisine"
           value={form.cuisine}
           onChange={val => handleChange('cuisine', val)}
-          data={[
-            { value: 'ITALIAN', label: 'Italian' },
-            { value: 'MEXICAN', label: 'Mexican' },
-            { value: 'VIETNAMESE', label: 'Vietnamese' },
-            { value: 'CHINESE', label: 'Chinese' },
-            { value: 'INDIAN', label: 'Indian' },
-            { value: 'JAPANESE', label: 'Japanese' },
-            { value: 'THAI', label: 'Thai' },
-            { value: 'FRENCH', label: 'French' },
-            { value: 'MEDITERRANEAN', label: 'Mediterranean' },
-            { value: 'AMERICAN', label: 'American' },
-          ]}
+          data={cuisineOptions}
           searchable
           clearable
           required
@@ -146,6 +136,7 @@ export function AddRecipeForm({ onAdded }: AddRecipeFormProps) {
           onChange={e => handleChange('instructions', e.currentTarget.value)}
           autosize
           minRows={4}
+          required
         />
 
         <Button type="submit" fullWidth>

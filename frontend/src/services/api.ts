@@ -74,13 +74,12 @@ export const api = {
   },
 
   // Delete a recipe (only works on localhost backend)
-  async deleteRecipe(id: number): Promise<void> {
-    const response = await fetch(`${site}/api/recipes/${id}`, {
-      method: 'DELETE'
+  async deleteRecipes(ids: number[]): Promise<void> {
+    const response = await fetch(`${site}/api/recipes`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids }),
     });
-
-    if (!response.ok) {
-      throw new Error('Failed to delete recipe');
-    }
+    if (!response.ok) throw new Error('Failed to delete recipes');
   }
 };

@@ -11,7 +11,7 @@ import {
   Switch
 } from '@mantine/core';
 import { IconSearch } from '@tabler/icons-react';
-import type { FilterOptions } from '../types/recipe';
+import { cuisineOptions, type FilterOptions } from '../types/recipe';
 
 interface Props {
   onFilter: (filterValue: FilterOptions) => void;
@@ -64,18 +64,7 @@ export const FilterForm: React.FC<Props> = ({ onFilter, onClear, isLoading = fal
           <Select
             size="sm"
             placeholder="Cuisine"
-            data={[
-              { value: 'ITALIAN', label: 'Italian' },
-              { value: 'MEXICAN', label: 'Mexican' },
-              { value: 'VIETNAMESE', label: 'Vietnamese' },
-              { value: 'CHINESE', label: 'Chinese' },
-              { value: 'INDIAN', label: 'Indian' },
-              { value: 'JAPANESE', label: 'Japanese' },
-              { value: 'THAI', label: 'Thai' },
-              { value: 'FRENCH', label: 'French' },
-              { value: 'MEDITERRANEAN', label: 'Mediterranean' },
-              { value: 'AMERICAN', label: 'American' }
-            ]}
+            data={cuisineOptions}
             value={filters.cuisine || ''}
             onChange={(value) => updateFilter('cuisine', value)}
             clearable

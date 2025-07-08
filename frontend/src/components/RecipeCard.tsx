@@ -10,10 +10,12 @@ import {
   TextInput,
   Textarea,
   Checkbox,
+  Select,
 } from '@mantine/core';
 import { IconClock, IconCurrencyDollar } from '@tabler/icons-react';
 import type { Recipe } from '../types/recipe';
 import { api } from '../services/api';
+import { cuisineOptions } from '../types/recipe';
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -45,17 +47,6 @@ export function RecipeCard({
     }
   };
 
-  const handleView = async () => {
-    try {
-      const data = await api.getRecipeByID(recipe.id);
-      setFullRecipe(data);
-      setViewOpened(true);
-    } catch (err) {
-      console.error('Error fetching recipe details', err);
-      alert('Failed to load recipe details');
-    }
-  };
-
   const handleChange = (field: keyof Recipe, value: any) => {
     setForm((f) => ({ ...f, [field]: value }));
   };
@@ -63,25 +54,22 @@ export function RecipeCard({
   const handleSave = async () => {
     try {
       const updated = await api.updateRecipe(form.id, {
-        name: form.name,
-        price: form.price,
-        cuisine: form.cuisine,
-        prepTime: form.prepTime,
-        mealTime: form.mealTime,
-        isVegan: form.isVegan,
-        isVegetarian: form.isVegetarian,
+        ...form,
         ingredients: form.ingredients,
-        instructions: form.instructions,
       });
-
       setForm(updated);
       setFullRecipe(updated);
       setEditOpened(false);
-
       onEdit?.(updated);
     } catch (err) {
       console.error('Failed to update recipe', err);
       alert('Failed to update recipe. Please try again.');
+    }
+  };
+
+  const handleCardClick = () => {
+    if (deleteMode && onSelectDelete) {
+      onSelectDelete();
     }
   };
 
@@ -95,105 +83,58 @@ export function RecipeCard({
         style={{
           margin: '10px',
           maxWidth: '100%',
+          border: isSelectedForDelete ? '3px solid red' : undefined,
           cursor: deleteMode ? 'pointer' : 'default',
-          borderColor: isSelectedForDelete ? '#f03e3e' : undefined,
-          backgroundColor: isSelectedForDelete ? '#fff5f5' : undefined,
-          userSelect: 'none',
         }}
-        onClick={() => {
-          if (deleteMode && onSelectDelete) {
-            onSelectDelete();
-          }
-        }}
-        tabIndex={deleteMode ? 0 : undefined}
-        role={deleteMode ? 'button' : undefined}
-        aria-pressed={isSelectedForDelete}
+        onClick={handleCardClick}
       >
         <Stack gap="md">
           <div>
-            <Text fw={500} size="lg">
-              {recipe.name}
-            </Text>
-            <Text size="sm" c="dimmed">
-              {recipe.cuisine}
-            </Text>
+            <Text fw={500} size="lg">{fullRecipe.name}</Text>
+            <Text size="sm" c="dimmed">{fullRecipe.cuisine}</Text>
           </div>
 
           <Group gap="xs">
-            <Badge color={getMealTimeColor(recipe.mealTime)}>
-              {recipe.mealTime}
-            </Badge>
-            {recipe.isVegan && <Badge color="green">Vegan</Badge>}
-            {recipe.isVegetarian && <Badge color="teal">Vegetarian</Badge>}
+            <Badge color={getMealTimeColor(fullRecipe.mealTime)}>{fullRecipe.mealTime}</Badge>
+            {fullRecipe.isVegan && <Badge color="green">Vegan</Badge>}
+            {fullRecipe.isVegetarian && <Badge color="teal">Vegetarian</Badge>}
           </Group>
 
           <Group gap="md">
             <Group gap="xs">
               <IconClock size={16} />
-              <Text size="sm">{recipe.prepTime} min</Text>
+              <Text size="sm">{fullRecipe.prepTime} min</Text>
             </Group>
             <Group gap="xs">
               <IconCurrencyDollar size={16} />
-              <Text size="sm">${recipe.price.toFixed(2)}</Text>
+              <Text size="sm">${fullRecipe.price.toFixed(2)}</Text>
             </Group>
           </Group>
 
           <div>
-            <Text size="sm" fw={500}>
-              Ingredients:
-            </Text>
-            <Text size="sm" c="dimmed" lineClamp={3}>
-              {recipe.ingredients.join(', ')}
-            </Text>
+            <Text size="sm" fw={500}>Ingredients:</Text>
+            <Text size="sm" c="dimmed" lineClamp={3}>{fullRecipe.ingredients.join(', ')}</Text>
           </div>
 
           {!deleteMode && (
             <Group grow>
-              <Button onClick={handleView} variant="light">
-                Recipe
-              </Button>
-              <Button
-                onClick={() => {
-                  setForm(recipe);
-                  setEditOpened(true);
-                }}
-                variant="outline"
-              >
-                Edit
-              </Button>
+              <Button onClick={() => setViewOpened(true)} variant="light">Recipe</Button>
+              <Button onClick={() => setEditOpened(true)} variant="outline">Edit</Button>
             </Group>
           )}
         </Stack>
       </Card>
 
       {/* View Modal */}
-      <Modal
-        opened={viewOpened}
-        onClose={() => setViewOpened(false)}
-        title={fullRecipe.name}
-        size="lg"
-        centered
-      >
+      <Modal opened={viewOpened} onClose={() => setViewOpened(false)} title={fullRecipe.name} size="lg" centered>
         <Stack>
-          <Text>
-            <strong>Cuisine:</strong> {fullRecipe.cuisine}
-          </Text>
-          <Text>
-            <strong>Meal Time:</strong> {fullRecipe.mealTime}
-          </Text>
-          <Text>
-            <strong>Preparation Time:</strong> {fullRecipe.prepTime} min
-          </Text>
-          <Text>
-            <strong>Price:</strong> ${fullRecipe.price.toFixed(2)}
-          </Text>
-          <Text>
-            <strong>Ingredients:</strong>
-          </Text>
+          <Text><strong>Cuisine:</strong> {fullRecipe.cuisine}</Text>
+          <Text><strong>Meal Time:</strong> {fullRecipe.mealTime}</Text>
+          <Text><strong>Preparation Time:</strong> {fullRecipe.prepTime} min</Text>
+          <Text><strong>Price:</strong> ${fullRecipe.price.toFixed(2)}</Text>
+          <Text><strong>Ingredients:</strong></Text>
           <ul>
-            {fullRecipe.ingredients.map((ing, i) => (
-              <li key={i}>{ing}</li>
-            ))}
+            {fullRecipe.ingredients.map((ing, i) => <li key={i}>{ing}</li>)}
           </ul>
           {fullRecipe.instructions && (
             <>
@@ -205,57 +146,61 @@ export function RecipeCard({
       </Modal>
 
       {/* Edit Modal */}
-      <Modal
-        opened={editOpened}
-        onClose={() => setEditOpened(false)}
-        title={`Edit: ${form.name}`}
-        size="lg"
-        centered
-      >
+      <Modal opened={editOpened} onClose={() => setEditOpened(false)} title={`Edit: ${form.name}`} size="lg" centered>
         <Stack>
           <TextInput
             label="Name"
             value={form.name}
             onChange={(e) => handleChange('name', e.currentTarget.value)}
+            required
           />
-          <TextInput
+          <Select
             label="Cuisine"
+            placeholder="Select cuisine"
             value={form.cuisine}
-            onChange={(e) => handleChange('cuisine', e.currentTarget.value)}
+            onChange={(val) => handleChange('cuisine', val)}
+            data={cuisineOptions}
+            searchable
+            clearable
+            required
           />
-          <TextInput
+          <Select
             label="Meal Time"
             value={form.mealTime}
-            onChange={(e) =>
-              handleChange('mealTime', e.currentTarget.value.toUpperCase())
-            }
+            onChange={(val) => handleChange('mealTime', val)}
+            data={[
+              { value: 'BREAKFAST', label: 'Breakfast' },
+              { value: 'LUNCH', label: 'Lunch' },
+              { value: 'DINNER', label: 'Dinner' },
+              { value: 'SNACK', label: 'Snack' },
+            ]}
+            required
           />
           <TextInput
-            label="Prep Time"
+            label="Prep Time (minutes)"
             type="number"
             value={form.prepTime}
             onChange={(e) => handleChange('prepTime', Number(e.currentTarget.value))}
+            required
           />
           <TextInput
-            label="Price"
+            label="Price ($)"
             type="number"
             value={form.price}
             onChange={(e) => handleChange('price', Number(e.currentTarget.value))}
+            required
           />
           <Textarea
             label="Ingredients (comma separated)"
             value={form.ingredients.join(', ')}
-            onChange={(e) =>
-              handleChange(
-                'ingredients',
-                e.currentTarget.value.split(',').map((s) => s.trim())
-              )
-            }
+            onChange={(e) => handleChange('ingredients', e.currentTarget.value.split(',').map(s => s.trim()))}
+            required
           />
           <Textarea
             label="Instructions"
             value={form.instructions || ''}
             onChange={(e) => handleChange('instructions', e.currentTarget.value)}
+            required
           />
           <Checkbox
             label="Vegan"
@@ -268,9 +213,7 @@ export function RecipeCard({
             onChange={(e) => handleChange('isVegetarian', e.currentTarget.checked)}
           />
           <Group justify="flex-end" mt="md">
-            <Button variant="default" onClick={() => setEditOpened(false)}>
-              Cancel
-            </Button>
+            <Button variant="default" onClick={() => setEditOpened(false)}>Cancel</Button>
             <Button onClick={handleSave}>Save</Button>
           </Group>
         </Stack>
