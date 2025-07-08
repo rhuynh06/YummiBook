@@ -25,14 +25,19 @@ export function FilterForm({ onFilter, onClear, isLoading = false }) {
     onClear();
   };
 
-  const updateFilter = (key: keyof FilterOptions, value: string | number | boolean | null) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value
-    }));
+  const updateFilter = <K extends keyof FilterOptions>(key: K, value: FilterOptions[K] | null) => {
+    setFilters(prev => {
+      const newFilters = { ...prev };
+      if (value === false || value === null || value === '') {
+        delete newFilters[key];
+      } else {
+        newFilters[key] = value;
+      }
+      return newFilters;
+    });
   };
 
-  const activeFiltersCount = Object.values(filters).filter(v => v !== undefined && v !== null && v !== '').length;
+  const activeFiltersCount = Object.values(filters).filter(v => v !== undefined && v !== null && v !== '' && v !== false).length;
 
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder>

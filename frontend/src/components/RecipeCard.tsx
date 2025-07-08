@@ -89,7 +89,7 @@ export function RecipeCard({ recipe, onEdit }: RecipeCardProps) {
           <Group gap="xs">
             <Badge color={getMealTimeColor(recipe.mealTime)}>{recipe.mealTime}</Badge>
             {recipe.isVegan && <Badge color="green">Vegan</Badge>}
-            {recipe.isVegetarian && !recipe.isVegan && <Badge color="teal">Vegetarian</Badge>}
+            {recipe.isVegetarian && <Badge color="teal">Vegetarian</Badge>}
           </Group>
 
           <Group gap="md">

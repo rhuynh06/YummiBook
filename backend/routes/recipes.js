@@ -130,7 +130,7 @@ router.get('/:id', async (req, res) => {
     recipe.ingredients = JSON.parse(recipe.ingredients || '[]');
     res.json(recipe);
   } catch (err) {
-    res.status(500).json({ error: 'RAAWR' });
+    res.status(500).json({ error: 'Error fetching recipe' });
   }
 });
 
