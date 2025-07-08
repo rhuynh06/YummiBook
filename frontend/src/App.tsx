@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
   Container,
-  Title,
   Group,
   Stack,
   Alert,
@@ -15,6 +14,8 @@ import { RecipeList } from './components/RecipeList';
 import { AddRecipeForm } from './components/AddRecipeForm';
 import { api } from './services/api';
 import type { Recipe, FilterOptions } from './types/recipe';
+import { isLocalhost } from './config';
+import logo from './assets/logo.png';
 import './App.css';
 
 function App() {
@@ -96,11 +97,9 @@ function App() {
     <Container size="xl" className="py-8">
       <Stack gap="xl">
         <div className="text-center">
-          <Title order={1} className="text-4xl font-bold text-gray-800 mb-2">
-            🍳 CookBook
-          </Title>
+          <img src={logo} alt="YummiBook Logo" style={{ width: '30%', height: 'auto' }} />
           <p className="text-gray-600 text-lg">
-            Discover delicious recipes from around the world
+            Tasty Recipes by Everyone, for Everyone — From Every Corner of the World
           </p>
         </div>
 
@@ -113,19 +112,15 @@ function App() {
         <FilterForm onFilter={handleFilter} onClear={handleClearFilters} isLoading={isLoading} />
 
         <Group>
-          <Button
-            color={deleteMode ? '#FF3131' : 'red'}
-            onClick={() => {
-              setDeleteMode(!deleteMode);
-              setSelectedForDelete([]);
+          {isLocalhost && (
+            <Button
+              color={deleteMode ? '#FF3131' : 'red'}
+              onClick={() => {
+                setDeleteMode(!deleteMode);
+                setSelectedForDelete([]);
             }}
-          >
-            {deleteMode ? 'Cancel Delete' : 'Delete Recipes'}
-          </Button>
-
-          {deleteMode && selectedForDelete.length > 0 && (
-            <Button color="red" onClick={() => setConfirmDeleteOpened(true)}>
-              Delete Selected ({selectedForDelete.length})
+            >
+              {deleteMode ? 'Cancel Delete' : 'Delete Recipes'}
             </Button>
           )}
 
