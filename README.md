@@ -1,4 +1,4 @@
-# YummiBook - Recipe Management App
+# YummiBook
 
 YummiBook is a full-stack web app that lets you browse, filter, add, edit, and view detailed recipes in a sleek and responsive UI.
 
