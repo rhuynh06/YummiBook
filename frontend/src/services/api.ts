@@ -1,11 +1,12 @@
+import { BACKEND_URL } from '../config';
 import type { Recipe, FilterOptions } from '../types/recipe';
 
-const API_BASE_URL = 'http://localhost:5050/api/recipes';
+const site = BACKEND_URL;
 
 export const api = {
   // Get all recipes
   async getAllRecipes(): Promise<Recipe[]> {
-    const response = await fetch(API_BASE_URL);
+    const response = await fetch(`${site}/api/recipes`);
     if (!response.ok) {
       throw new Error('Failed to fetch recipes');
     }
@@ -14,7 +15,7 @@ export const api = {
 
   // Get recipe by ID
   async getRecipeByID(id: number): Promise<Recipe> {
-    const response = await fetch(`${API_BASE_URL}/${id}`);
+    const response = await fetch(`${site}/api/recipes/${id}`);
     if (!response.ok) {
       throw new Error('Failed to fetch recipe by id');
     }
@@ -30,7 +31,7 @@ export const api = {
       }
     });
 
-    const response = await fetch(`${API_BASE_URL}/filter?${params.toString()}`);
+    const response = await fetch(`${site}/api/recipes/filter?${params.toString()}`);
     if (!response.ok) {
       throw new Error('Failed to filter recipes');
     }
@@ -39,7 +40,7 @@ export const api = {
 
   // Add Recipe
   async addRecipe(newRecipe: Omit<Recipe, 'id'>): Promise<Recipe> {
-    const response = await fetch(API_BASE_URL, {
+    const response = await fetch(`${site}/api/recipes`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -48,17 +49,17 @@ export const api = {
     });
 
     if (!response.ok) {
-      console.log('Posting to: ', API_BASE_URL);
+      console.log('Posting to: ', `${site}/api/recipes`);
       throw new Error('Failed to add recipe');
     }
 
     return await response.json();
   },
 
-  // Update (Edit) Recipe by ID
-  async updateRecipe(id: number, updatedRecipe: Omit<Recipe, 'id'>): Promise<Recipe> {
-    const response = await fetch(`${API_BASE_URL}/${id}`, {
-      method: 'PUT', // or PATCH depending on your backend
+  // Edit Recipe
+ async updateRecipe(id: number, updatedRecipe: Omit<Recipe, 'id'>): Promise<Recipe> {
+    const response = await fetch(`${site}/api/recipes/${id}`, {
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
       },

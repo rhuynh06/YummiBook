@@ -1,6 +1,7 @@
 import { SimpleGrid, Text, Center, Loader } from '@mantine/core';
 import { RecipeCard } from './RecipeCard';
 import type { Recipe } from '../types/recipe';
+import { api } from '../services/api';
 
 interface RecipeListProps {
   recipes: Recipe[];
@@ -10,11 +11,9 @@ interface RecipeListProps {
 export function RecipeList({ recipes, isLoading }: RecipeListProps) {
   const handleEdit = async (updated: Recipe) => {
     try {
-      const res = await fetch(`/api/recipes/${updated.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updated),
-      });
+      const { id, ...updatedRecipe } = updated;  // id removed from updatedRecipe object
+
+      await api.updateRecipe(id, updatedRecipe);
 
       window.location.reload();
     } catch (err) {

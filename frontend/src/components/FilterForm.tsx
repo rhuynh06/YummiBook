@@ -13,7 +13,13 @@ import {
 import { IconSearch } from '@tabler/icons-react';
 import type { FilterOptions } from '../types/recipe';
 
-export function FilterForm({ onFilter, onClear, isLoading = false }) {
+interface Props {
+  onFilter: (filterValue: FilterOptions) => void;
+  onClear: () => void;
+  isLoading?: boolean;
+}
+
+export const FilterForm: React.FC<Props> = ({ onFilter, onClear, isLoading = false }) => {
   const [filters, setFilters] = useState<FilterOptions>({});
 
   const handleFilter = () => {
