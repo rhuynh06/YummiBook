@@ -133,7 +133,7 @@ export function RecipeCard({
   size="lg"
   centered
 >
-  <Stack spacing="md">
+  <Stack gap="md">
     <Text>
       <Text component="span" color="blue" fw={600}>Cuisine:</Text> {fullRecipe.cuisine}
     </Text>
