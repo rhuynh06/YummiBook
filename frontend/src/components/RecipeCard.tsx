@@ -126,24 +126,47 @@ export function RecipeCard({
       </Card>
 
       {/* View Modal */}
-      <Modal opened={viewOpened} onClose={() => setViewOpened(false)} title={fullRecipe.name} size="lg" centered>
-        <Stack>
-          <Text><strong>Cuisine:</strong> {fullRecipe.cuisine}</Text>
-          <Text><strong>Meal Time:</strong> {fullRecipe.mealTime}</Text>
-          <Text><strong>Preparation Time:</strong> {fullRecipe.prepTime} min</Text>
-          <Text><strong>Price:</strong> ${fullRecipe.price.toFixed(2)}</Text>
-          <Text><strong>Ingredients:</strong></Text>
-          <ul>
-            {fullRecipe.ingredients.map((ing, i) => <li key={i}>{ing}</li>)}
-          </ul>
-          {fullRecipe.instructions && (
-            <>
-              <Text fw={500}>Instructions:</Text>
-              <Text>{fullRecipe.instructions}</Text>
-            </>
-          )}
-        </Stack>
-      </Modal>
+<Modal
+  opened={viewOpened}
+  onClose={() => setViewOpened(false)}
+  title={fullRecipe.name}
+  size="lg"
+  centered
+>
+  <Stack spacing="md">
+    <Text>
+      <Text component="span" color="blue" fw={600}>Cuisine:</Text> {fullRecipe.cuisine}
+    </Text>
+    <Text>
+      <Text component="span" color="blue" fw={600}>Meal Time:</Text> {fullRecipe.mealTime}
+    </Text>
+    <Text>
+      <Text component="span" color="blue" fw={600}>Preparation Time:</Text> {fullRecipe.prepTime} min
+    </Text>
+    <Text>
+      <Text component="span" color="blue" fw={600}>Price:</Text> ${fullRecipe.price.toFixed(2)}
+    </Text>
+
+    <div>
+      <Text color="blue" fw={600} mb={4}>Ingredients:</Text>
+      <ul style={{ margin: 0, paddingLeft: '1.25rem', lineHeight: 1.6 }}>
+        {fullRecipe.ingredients.map((ing, i) => (
+          <li key={i}>{ing}</li>
+        ))}
+      </ul>
+    </div>
+
+    {fullRecipe.instructions && (
+      <div>
+        <Text color="blue" fw={600} mb={4}>Instructions:</Text>
+        <Text style={{ whiteSpace: 'pre-line', lineHeight: 1.6 }}>
+          {fullRecipe.instructions}
+        </Text>
+      </div>
+    )}
+  </Stack>
+</Modal>
+
 
       {/* Edit Modal */}
       <Modal opened={editOpened} onClose={() => setEditOpened(false)} title={`Edit: ${form.name}`} size="lg" centered>
