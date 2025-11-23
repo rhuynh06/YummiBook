@@ -6,23 +6,43 @@ const {PrismaClient} = require("../generated/prisma");
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Get All Recipes
+// Get All Recipes WITH PAGINATION
 router.get('/', async (req, res) => {
   try {
-      const foods = await prisma.food.findMany();
-      // Parse ingredients JSON string to array for frontend
-      const foodsWithParsedIngredients = foods.map(food => ({
+      const { cursor, limit = 20 } = req.query;
+      
+      // Fetch limit + 1 to check if more exist
+      const foods = await prisma.food.findMany({
+          take: parseInt(limit) + 1,
+          ...(cursor && {
+              cursor: { id: parseInt(cursor) },
+              skip: 1  // Skip the cursor itself
+          }),
+          orderBy: { id: 'asc' }
+      });
+      
+      // Check if there are more results
+      const hasMore = foods.length > parseInt(limit);
+      const results = hasMore ? foods.slice(0, -1) : foods;
+      
+      // Parse ingredients for frontend
+      const foodsWithParsedIngredients = results.map(food => ({
           ...food,
           ingredients: JSON.parse(food.ingredients || '[]')
       }));
-      res.json(foodsWithParsedIngredients);
+      
+      res.json({
+          data: foodsWithParsedIngredients,
+          nextCursor: hasMore ? results[results.length - 1].id : null,
+          hasMore
+      });
   } catch (error) {
       console.error(error);
       res.status(500).json({error: 'Error fetching foods'});
   }
 });
 
-// Filter Recipes
+// Filter Recipes WITH PAGINATION
 router.get('/filter', async (req, res) => {
     const {
         cuisine,
@@ -31,11 +51,13 @@ router.get('/filter', async (req, res) => {
         isVegan,
         isVegetarian,
         search,
-        maxPrepTime
-    } = req.query
+        maxPrepTime,
+        cursor,
+        limit = 20
+    } = req.query;
 
     try {
-        // Build where clause for Prisma
+        // Build where clause (SAME AS BEFORE)
         const whereClause = {};
         
         if (maxPrice && !isNaN(parseFloat(maxPrice))) {
@@ -58,25 +80,29 @@ router.get('/filter', async (req, res) => {
             whereClause.prepTime = { lte: parseInt(maxPrepTime) };
         }
 
+        // Fetch with pagination (NEW)
         let foods = await prisma.food.findMany({
-            where: whereClause
+            where: whereClause,
+            take: parseInt(limit) + 1,
+            ...(cursor && {
+                cursor: { id: parseInt(cursor) },
+                skip: 1
+            }),
+            orderBy: { id: 'asc' }
         });
 
-        // Case-insensitive cuisine filter in JS
+        // Client-side filters (SAME AS BEFORE)
         if (cuisine && cuisine.trim() !== '') {
             foods = foods.filter(food =>
                 food.cuisine && food.cuisine.toLowerCase().includes(cuisine.toLowerCase())
             );
         }
 
-        // Filter by search term if provided (search by name and ingredients)
         if (search && search.trim() !== '') {
             const searchTerm = search.toLowerCase();
             foods = foods.filter(food => {
-                // Search in recipe name
                 const nameMatch = food.name.toLowerCase().includes(searchTerm);
                 
-                // Search in ingredients
                 let ingredientMatch = false;
                 try {
                     const ingredients = JSON.parse(food.ingredients || '[]');
@@ -87,15 +113,18 @@ router.get('/filter', async (req, res) => {
                     console.error('Error parsing ingredients for food:', food.id, e);
                 }
                 
-                // Search in cuisine
                 const cuisineMatch = food.cuisine.toLowerCase().includes(searchTerm);
                 
                 return nameMatch || ingredientMatch || cuisineMatch;
             });
         }
 
-        // Parse ingredients JSON string to array for frontend
-        const foodsWithParsedIngredients = foods.map(food => {
+        // Check if more results (NEW)
+        const hasMore = foods.length > parseInt(limit);
+        const results = hasMore ? foods.slice(0, -1) : foods;
+
+        // Parse ingredients (SAME AS BEFORE)
+        const foodsWithParsedIngredients = results.map(food => {
             try {
                 return {
                     ...food,
@@ -110,7 +139,11 @@ router.get('/filter', async (req, res) => {
             }
         });
 
-        res.json(foodsWithParsedIngredients);
+        res.json({
+            data: foodsWithParsedIngredients,
+            nextCursor: hasMore ? results[results.length - 1].id : null,
+            hasMore
+        });
     } catch (error) {
         console.error('Filter error:', error);
         res.status(500).json({error: 'Error fetching foods'});

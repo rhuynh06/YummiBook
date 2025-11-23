@@ -17,8 +17,8 @@ export function RecipeList({
   onSelectDelete,
   selectedRecipeIds = [],
 }: RecipeListProps) {
-  if (isLoading) return <div>Loading...</div>;
-  if (recipes.length === 0) return <div>No recipes found.</div>;
+  if (isLoading && !recipes?.length) return <div>Loading...</div>;
+  if (!recipes || recipes.length === 0) return <div>No recipes found.</div>;
 
   return (
     <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="lg">

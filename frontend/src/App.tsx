@@ -24,6 +24,11 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [addModalOpened, setAddModalOpened] = useState(false);
 
+  // Pagination state
+  const [cursor, setCursor] = useState<number | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [currentFilters, setCurrentFilters] = useState<FilterOptions>({});
+
   const [deleteMode, setDeleteMode] = useState(false);
   const [selectedForDelete, setSelectedForDelete] = useState<number[]>([]);
   const [confirmDeleteOpened, setConfirmDeleteOpened] = useState(false);
@@ -36,9 +41,13 @@ function App() {
   const loadAllRecipes = async () => {
     setIsLoading(true);
     setError(null);
+    setRecipes([]);
+    setCursor(null);
     try {
-      const data = await api.getAllRecipes();
+      const { data, nextCursor, hasMore } = await api.getAllRecipes();
       setRecipes(data);
+      setCursor(nextCursor);
+      setHasMore(hasMore);
     } catch (err) {
       setError('Failed to load recipes. Please try again in a moment. If the issue continues, contact support at ryanhuynh200604@gmail.com or reach out on GitHub (@rhuynh06).');
       console.error('Error loading recipes:', err);
@@ -47,12 +56,35 @@ function App() {
     }
   };
 
+  const loadMoreRecipes = async () => {
+    if (!hasMore || isLoading) return;
+    
+    setIsLoading(true);
+    try {
+      const { data, nextCursor, hasMore: more } = await api.getAllRecipes(cursor);
+      setRecipes(prev => [...prev, ...data]);
+      setCursor(nextCursor);
+      setHasMore(more);
+    } catch (err) {
+      setError('Failed to load more recipes.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleFilter = async (filters: FilterOptions) => {
     setIsLoading(true);
     setError(null);
+    setRecipes([]);
+    setCursor(null);
+    setCurrentFilters(filters);
+    
     try {
-      const data = await api.filterRecipes(filters);
+      const { data, nextCursor, hasMore } = await api.filterRecipes(filters);
       setRecipes(data);
+      setCursor(nextCursor);
+      setHasMore(hasMore);
     } catch (err) {
       setError('Failed to filter recipes. Please try again.');
       console.error('Error filtering recipes:', err);
@@ -61,7 +93,25 @@ function App() {
     }
   };
 
+  const loadMoreFiltered = async () => {
+    if (!hasMore || isLoading) return;
+    
+    setIsLoading(true);
+    try {
+      const { data, nextCursor, hasMore: more } = await api.filterRecipes(currentFilters, cursor);
+      setRecipes(prev => [...prev, ...data]);
+      setCursor(nextCursor);
+      setHasMore(more);
+    } catch (err) {
+      setError('Failed to load more recipes.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleClearFilters = () => {
+    setCurrentFilters({});
     loadAllRecipes();
   };
 
@@ -87,7 +137,6 @@ function App() {
     }
   };
 
-  // After adding a recipe reload list
   const handleRecipeAdded = () => {
     setAddModalOpened(false);
     loadAllRecipes();
@@ -118,7 +167,7 @@ function App() {
               onClick={() => {
                 setDeleteMode(!deleteMode);
                 setSelectedForDelete([]);
-            }}
+              }}
             >
               {deleteMode ? 'Cancel Delete' : 'Delete Recipes'}
             </Button>
@@ -134,6 +183,18 @@ function App() {
           selectedRecipeIds={selectedForDelete}
           onSelectDelete={toggleSelectForDelete}
         />
+
+        {/* LOAD MORE BUTTON */}
+        {hasMore && !isLoading && recipes.length > 0 && (
+          <Button 
+            onClick={Object.keys(currentFilters).length > 0 ? loadMoreFiltered : loadMoreRecipes}
+            fullWidth
+            variant="light"
+            size="lg"
+          >
+            Load More Recipes
+          </Button>
+        )}
 
         <Modal
           opened={addModalOpened}
