@@ -23,13 +23,11 @@ YummiBook is a full-stack web app that lets you browse, filter, add, edit, and v
 - **Mantine UI v7**
 - **Tailwind CSS**
 - **Vite**
-- **Tabler Icons**
 
 ### Backend
 - **Node.js + Express**
 - **Prisma ORM**
 - **SQLite**
-- **CORS Enabled**
 
 ---
 
