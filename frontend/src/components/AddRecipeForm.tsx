@@ -38,7 +38,7 @@ export function AddRecipeForm({ onAdded }: AddRecipeFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.addRecipe({
+      await api.createRecipe({
         ...form,
         ingredients: form.ingredients.split(',').map(i => i.trim()),
       });
