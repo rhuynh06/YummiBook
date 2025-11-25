@@ -1,93 +1,147 @@
-import { BACKEND_URL } from '../config';
 import type { Recipe, FilterOptions } from '../types/recipe';
 
-const site = BACKEND_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5050';
 
-// Add pagination response type
-interface PaginatedResponse<T> {
-  data: T[];
+interface PaginatedResponse {
+  data: Recipe[];
   nextCursor: number | null;
   hasMore: boolean;
 }
 
-export const api = {
-  // Get all recipes with pagination
-  async getAllRecipes(cursor?: number | null, limit: number = 20): Promise<PaginatedResponse<Recipe>> {
-    const params = new URLSearchParams();
-    if (cursor) params.append('cursor', cursor.toString());
-    params.append('limit', limit.toString());
-    
-    const response = await fetch(`${site}/api/recipes?${params.toString()}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch recipes');
-    }
-    return response.json();
-  },
-  
-  // Get recipe by ID (UNCHANGED)
-  async getRecipeByID(id: number): Promise<Recipe> {
-    const response = await fetch(`${site}/api/recipes/${id}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch recipe by id');
-    }
-    return response.json();
-  },
-  
-  // Filter recipes with pagination
-  async filterRecipes(
-    filters: FilterOptions, 
-    cursor?: number | null, 
-    limit: number = 20
-  ): Promise<PaginatedResponse<Recipe>> {
-    const params = new URLSearchParams();
-    
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        params.append(key, value.toString());
+class ApiService {
+  private baseUrl: string;
+
+  constructor(baseUrl: string) {
+    this.baseUrl = baseUrl;
+  }
+
+  private async fetchJson<T>(
+    endpoint: string,
+    options?: RequestInit
+  ): Promise<T> {
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...options?.headers,
+        },
+        ...options,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
-    });
-    
-    if (cursor) params.append('cursor', cursor.toString());
-    params.append('limit', limit.toString());
-    
-    const response = await fetch(`${site}/api/recipes/filter?${params.toString()}`);
-    if (!response.ok) {
-      throw new Error('Failed to filter recipes');
+
+      return await response.json();
+    } catch (error) {
+      console.error(`API Error [${endpoint}]:`, error);
+      throw error;
     }
-    return await response.json();
-  },
-  
-  // Add, update, delete (UNCHANGED)
-  async addRecipe(newRecipe: Omit<Recipe, 'id'>): Promise<Recipe> {
-    const response = await fetch(`${site}/api/recipes`, {
+  }
+
+  private buildQueryParams(
+    filters: FilterOptions = {},
+    pagination: { cursor?: number | null; limit?: number } = {}
+  ): URLSearchParams {
+    const params = new URLSearchParams();
+
+    // Pagination
+    if (pagination.limit) {
+      params.append('limit', pagination.limit.toString());
+    }
+    if (pagination.cursor) {
+      params.append('cursor', pagination.cursor.toString());
+    }
+
+    // Filters
+    if (filters.cuisine) {
+      params.append('cuisine', filters.cuisine);
+    }
+    if (filters.maxPrice !== undefined) {
+      params.append('maxPrice', filters.maxPrice.toString());
+    }
+    if (filters.mealTime) {
+      params.append('mealTime', filters.mealTime);
+    }
+    if (filters.isVegan !== undefined) {
+      params.append('isVegan', filters.isVegan.toString());
+    }
+    if (filters.isVegetarian !== undefined) {
+      params.append('isVegetarian', filters.isVegetarian.toString());
+    }
+    if (filters.search) {
+      params.append('search', filters.search);
+    }
+    if (filters.maxPrepTime !== undefined) {
+      params.append('maxPrepTime', filters.maxPrepTime.toString());
+    }
+
+    return params;
+  }
+
+  async getAllRecipes(
+    cursor?: number | null,
+    limit: number = 20
+  ): Promise<PaginatedResponse> {
+    const params = this.buildQueryParams({}, { cursor, limit });
+    return this.fetchJson<PaginatedResponse>(`/api/recipes?${params}`);
+  }
+
+  async filterRecipes(
+    filters: FilterOptions,
+    cursor?: number | null,
+    limit: number = 20
+  ): Promise<PaginatedResponse> {
+    const params = this.buildQueryParams(filters, { cursor, limit });
+    return this.fetchJson<PaginatedResponse>(`/api/recipes?${params}`);
+  }
+
+  async getRecipes(
+    filters: FilterOptions = {},
+    cursor?: number | null,
+    limit: number = 20
+  ): Promise<PaginatedResponse> {
+    const params = this.buildQueryParams(filters, { cursor, limit });
+    return this.fetchJson<PaginatedResponse>(`/api/recipes?${params}`);
+  }
+
+  async getRecipeById(id: number): Promise<Recipe> {
+    return this.fetchJson<Recipe>(`/api/recipes/${id}`);
+  }
+
+  async createRecipe(recipe: Omit<Recipe, 'id'>): Promise<Recipe> {
+    return this.fetchJson<Recipe>('/api/recipes', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newRecipe)
+      body: JSON.stringify(recipe),
     });
-    if (!response.ok) {
-      throw new Error('Failed to add recipe');
-    }
-    return await response.json();
-  },
+  }
 
-  async updateRecipe(id: number, updatedRecipe: Omit<Recipe, 'id'>): Promise<Recipe> {
-    const response = await fetch(`${site}/api/recipes/${id}`, {
+  async updateRecipe(id: number, recipe: Partial<Recipe>): Promise<Recipe> {
+    return this.fetchJson<Recipe>(`/api/recipes/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updatedRecipe),
+      body: JSON.stringify(recipe),
     });
-    if (!response.ok) {
-      throw new Error('Failed to update recipe');
-    }
-    return await response.json();
-  },
+  }
 
-  async deleteRecipes(ids: number[]): Promise<void> {
-    const response = await fetch(`${site}/api/recipes`, {
+  async deleteRecipes(ids: number[]): Promise<{ deletedIds: number[] }> {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new Error('No IDs provided for deletion');
+    }
+
+    return this.fetchJson<{ deletedIds: number[] }>('/api/recipes', {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ids }),
     });
-    if (!response.ok) throw new Error('Failed to delete recipes');
   }
-};
+
+  async deleteRecipe(id: number): Promise<{ deletedIds: number[] }> {
+    return this.deleteRecipes([id]);
+  }
+}
+
+// Export singleton instance
+export const api = new ApiService(API_BASE_URL);
+
+// Export the class for testing purposes
+export { ApiService };

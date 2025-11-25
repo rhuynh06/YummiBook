@@ -35,34 +35,50 @@ function App() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    loadAllRecipes();
+    loadRecipes();
   }, []);
 
-  const loadAllRecipes = async () => {
+  /**
+   * Load recipes (with optional filters)
+   */
+  const loadRecipes = async (filters: FilterOptions = {}, resetList = true) => {
     setIsLoading(true);
     setError(null);
-    setRecipes([]);
-    setCursor(null);
+    
+    if (resetList) {
+      setRecipes([]);
+      setCursor(null);
+    }
+    
     try {
-      const { data, nextCursor, hasMore } = await api.getAllRecipes();
-      setRecipes(data);
+      const { data, nextCursor, hasMore } = await api.getRecipes(filters);
+      setRecipes(resetList ? data : [...recipes, ...data]);
       setCursor(nextCursor);
       setHasMore(hasMore);
+      setCurrentFilters(filters);
     } catch (err) {
-      setError('Failed to load recipes. Please try again in a moment. If the issue continues, contact support at ryanhuynh200604@gmail.com or reach out on GitHub (@rhuynh06).');
+      setError(
+        'Failed to load recipes. Please try again in a moment. If the issue continues, contact support at ryanhuynh200604@gmail.com or reach out on GitHub (@rhuynh06).'
+      );
       console.error('Error loading recipes:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
+  /**
+   * Load more recipes with current filters
+   */
   const loadMoreRecipes = async () => {
-    if (!hasMore || isLoading) return;
-    
+    if (!hasMore || isLoading || !cursor) return;
+
     setIsLoading(true);
     try {
-      const { data, nextCursor, hasMore: more } = await api.getAllRecipes(cursor);
-      setRecipes(prev => [...prev, ...data]);
+      const { data, nextCursor, hasMore: more } = await api.getRecipes(
+        currentFilters,
+        cursor
+      );
+      setRecipes((prev) => [...prev, ...data]);
       setCursor(nextCursor);
       setHasMore(more);
     } catch (err) {
@@ -73,54 +89,32 @@ function App() {
     }
   };
 
+  /**
+   * Handle filter changes
+   */
   const handleFilter = async (filters: FilterOptions) => {
-    setIsLoading(true);
-    setError(null);
-    setRecipes([]);
-    setCursor(null);
-    setCurrentFilters(filters);
-    
-    try {
-      const { data, nextCursor, hasMore } = await api.filterRecipes(filters);
-      setRecipes(data);
-      setCursor(nextCursor);
-      setHasMore(hasMore);
-    } catch (err) {
-      setError('Failed to filter recipes. Please try again.');
-      console.error('Error filtering recipes:', err);
-    } finally {
-      setIsLoading(false);
-    }
+    await loadRecipes(filters, true);
   };
 
-  const loadMoreFiltered = async () => {
-    if (!hasMore || isLoading) return;
-    
-    setIsLoading(true);
-    try {
-      const { data, nextCursor, hasMore: more } = await api.filterRecipes(currentFilters, cursor);
-      setRecipes(prev => [...prev, ...data]);
-      setCursor(nextCursor);
-      setHasMore(more);
-    } catch (err) {
-      setError('Failed to load more recipes.');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  /**
+   * Clear all filters and reload
+   */
   const handleClearFilters = () => {
-    setCurrentFilters({});
-    loadAllRecipes();
+    loadRecipes({}, true);
   };
 
+  /**
+   * Toggle recipe selection for deletion
+   */
   const toggleSelectForDelete = (id: number) => {
     setSelectedForDelete((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
 
+  /**
+   * Confirm and execute deletion
+   */
   const handleDeleteConfirm = async () => {
     setIsDeleting(true);
     try {
@@ -128,49 +122,87 @@ function App() {
       setSelectedForDelete([]);
       setDeleteMode(false);
       setConfirmDeleteOpened(false);
-      loadAllRecipes();
+      await loadRecipes(currentFilters, true);
     } catch (err) {
-      alert('Failed to delete recipes.');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete recipes.';
+      setError(errorMessage);
       console.error(err);
     } finally {
       setIsDeleting(false);
     }
   };
 
+  /**
+   * Handle successful recipe addition
+   */
   const handleRecipeAdded = () => {
     setAddModalOpened(false);
-    loadAllRecipes();
+    loadRecipes(currentFilters, true);
+  };
+
+  /**
+   * Open delete confirmation modal
+   */
+  const handleDeleteClick = () => {
+    if (selectedForDelete.length === 0) {
+      setError('Please select at least one recipe to delete.');
+      return;
+    }
+    setConfirmDeleteOpened(true);
   };
 
   return (
     <Container size="xl" className="py-8">
       <Stack gap="xl">
         <div className="text-center">
-          <img src={logo} alt="YummiBook Logo" style={{ width: '30%', height: 'auto' }} />
+          <img
+            src={logo}
+            alt="YummiBook Logo"
+            style={{ width: '30%', height: 'auto' }}
+          />
           <p className="text-gray-600 text-lg">
             Tasty Recipes by Everyone, for Everyone — From Every Corner of the World
           </p>
         </div>
 
         {error && (
-          <Alert icon={<IconAlertCircle size={16} />} title="Error" color="red" variant="light">
+          <Alert
+            icon={<IconAlertCircle size={16} />}
+            title="Error"
+            color="red"
+            variant="light"
+            withCloseButton
+            onClose={() => setError(null)}
+          >
             {error}
           </Alert>
         )}
 
-        <FilterForm onFilter={handleFilter} onClear={handleClearFilters} isLoading={isLoading} />
+        <FilterForm
+          onFilter={handleFilter}
+          onClear={handleClearFilters}
+          isLoading={isLoading}
+        />
 
         <Group>
           {isLocalhost && (
-            <Button
-              color={deleteMode ? '#FF3131' : 'red'}
-              onClick={() => {
-                setDeleteMode(!deleteMode);
-                setSelectedForDelete([]);
-              }}
-            >
-              {deleteMode ? 'Cancel Delete' : 'Delete Recipes'}
-            </Button>
+            <>
+              <Button
+                color={deleteMode ? '#FF3131' : 'red'}
+                onClick={() => {
+                  setDeleteMode(!deleteMode);
+                  setSelectedForDelete([]);
+                }}
+              >
+                {deleteMode ? 'Cancel Delete' : 'Delete Recipes'}
+              </Button>
+
+              {deleteMode && selectedForDelete.length > 0 && (
+                <Button color="red" variant="filled" onClick={handleDeleteClick}>
+                  Delete Selected ({selectedForDelete.length})
+                </Button>
+              )}
+            </>
           )}
 
           <Button onClick={() => setAddModalOpened(true)}>Add Recipe</Button>
@@ -184,10 +216,10 @@ function App() {
           onSelectDelete={toggleSelectForDelete}
         />
 
-        {/* LOAD MORE BUTTON */}
+        {/* Load More Button */}
         {hasMore && !isLoading && recipes.length > 0 && (
-          <Button 
-            onClick={Object.keys(currentFilters).length > 0 ? loadMoreFiltered : loadMoreRecipes}
+          <Button
+            onClick={loadMoreRecipes}
             fullWidth
             variant="light"
             size="lg"
@@ -196,6 +228,14 @@ function App() {
           </Button>
         )}
 
+        {/* No results message */}
+        {!isLoading && recipes.length === 0 && (
+          <Text size="lg" c="dimmed" ta="center">
+            No recipes found. Try adjusting your filters or add a new recipe!
+          </Text>
+        )}
+
+        {/* Add Recipe Modal */}
         <Modal
           opened={addModalOpened}
           onClose={() => setAddModalOpened(false)}
@@ -206,24 +246,35 @@ function App() {
           <AddRecipeForm onAdded={handleRecipeAdded} />
         </Modal>
 
+        {/* Delete Confirmation Modal */}
         <Modal
           opened={confirmDeleteOpened}
           onClose={() => setConfirmDeleteOpened(false)}
           title="Confirm Delete"
           centered
         >
-          <Text>
-            Are you sure you want to delete {selectedForDelete.length} recipe
-            {selectedForDelete.length > 1 ? 's' : ''}?
-          </Text>
-          <Group>
-            <Button variant="default" onClick={() => setConfirmDeleteOpened(false)}>
-              Cancel
-            </Button>
-            <Button color="red" onClick={handleDeleteConfirm} loading={isDeleting}>
-              Delete
-            </Button>
-          </Group>
+          <Stack gap="md">
+            <Text>
+              Are you sure you want to delete {selectedForDelete.length} recipe
+              {selectedForDelete.length > 1 ? 's' : ''}? This action cannot be undone.
+            </Text>
+            <Group justify="flex-end">
+              <Button
+                variant="default"
+                onClick={() => setConfirmDeleteOpened(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                color="red"
+                onClick={handleDeleteConfirm}
+                loading={isDeleting}
+              >
+                Delete
+              </Button>
+            </Group>
+          </Stack>
         </Modal>
       </Stack>
     </Container>
