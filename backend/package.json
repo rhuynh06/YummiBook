@@ -1,35 +1,32 @@
 {
-  "name": "cook-book",
-  "version": "1.0.0",
-  "description": "",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js",
-    "build": "npx prisma generate"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/rhuynh06/cook-book.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/rhuynh06/cook-book/issues"
-  },
-  "homepage": "https://github.com/rhuynh06/cook-book#readme",
   "dependencies": {
-    "@prisma/client": "^6.11.1",
-    "axios": "^1.10.0",
+    "@prisma/client": "^6.18.0",
     "cors": "^2.8.5",
-    "express": "^5.1.0"
-  },
-  "prisma": {
-    "seed": "node prisma/seed.js"
+    "express": "^5.1.0",
+    "pg": "^8.16.3",
+    "prisma": "^6.18.0"
   },
   "devDependencies": {
-    "prisma": "^6.10.1"
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
+    "@types/node": "^24.10.1",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "hono": "^4.10.3"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  },
+  "type": "commonjs",
+  "scripts": {
+    "dev": "ts-node-dev --respawn src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "seed": "ts-node prisma/seed.ts"
   }
 }

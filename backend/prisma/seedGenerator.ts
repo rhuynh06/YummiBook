@@ -1,5 +1,19 @@
-function generateUniqueRecipes(N) {
-  const cuisines = [
+interface Recipe {
+  name: string;
+  price: number;
+  cuisine: string;
+  prepTime: number;
+  mealTime: 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK';
+  isVegan: boolean;
+  isVegetarian: boolean;
+  ingredients: string[];
+  instructions: string;
+}
+
+type CuisineType = string;
+
+function generateUniqueRecipes(N: number): Recipe[] {
+  const cuisines: CuisineType[] = [
     "AMERICAN", "ARGENTINIAN", "AUSTRALIAN", "BRAZILIAN", "BRITISH", "CAJUN", "CARIBBEAN",
     "CHINESE", "CREOLE", "CUBAN", "ETHIOPIAN", "FILIPINO", "FRENCH", "GERMAN", "GREEK",
     "INDIAN", "INDONESIAN", "ITALIAN", "JAMAICAN", "JAPANESE", "KOREAN", "LEBANESE",
@@ -8,27 +22,26 @@ function generateUniqueRecipes(N) {
     "SPANISH", "THAI", "TURKISH", "VIETNAMESE"
   ];
 
-  const mealTimes = ["BREAKFAST", "LUNCH", "DINNER", "SNACK"];
-  const veganOptions = [true, false];
-  const vegetarianOptions = [true, false];
+  const mealTimes: Array<'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK'> = ["BREAKFAST", "LUNCH", "DINNER", "SNACK"];
+  const veganOptions: boolean[] = [true, false];
+  const vegetarianOptions: boolean[] = [true, false];
 
-  // Word pools for composing names
-  const adjectives = [
+  const adjectives: string[] = [
     "Sizzling", "Crunchy", "Spicy", "Savory", "Sweet", "Zesty", "Tangy", "Smoky", "Creamy",
     "Crispy", "Roasted", "Grilled", "Glazed", "Fresh", "Hearty", "Juicy", "Tender", "Bold"
   ];
 
-  const mainIngredients = [
+  const mainIngredients: string[] = [
     "Chicken", "Beef", "Tofu", "Salmon", "Pork", "Veggie", "Shrimp", "Lamb", "Mushroom",
     "Quinoa", "Lentil", "Eggplant", "Turkey", "Cheese", "Bacon", "Sausage", "Chickpea"
   ];
 
-  const dishTypes = [
+  const dishTypes: string[] = [
     "Wrap", "Bowl", "Salad", "Platter", "Skewers", "Tacos", "Stir-fry", "Curry", "Sandwich",
     "Pasta", "Stew", "Burger", "Pizza", "Soup", "Rolls", "Frittata"
   ];
 
-  const instructionsTemplates = [
+  const instructionsTemplates: Array<(ingredients: string[]) => string> = [
     (ingredients) => `Combine ${ingredients.join(", ")} and cook until done.`,
     (ingredients) => `Mix ${ingredients.join(", ")} thoroughly and serve.`,
     (ingredients) => `Prepare ${ingredients.join(", ")}, then bake or fry as preferred.`,
@@ -36,7 +49,7 @@ function generateUniqueRecipes(N) {
     (ingredients) => `Simmer ${ingredients.join(", ")} with spices and herbs for flavor.`
   ];
 
-  const ingredientsByCuisine = {
+  const ingredientsByCuisine: Record<CuisineType, string[]> = {
     AMERICAN: ["beef", "bread", "lettuce", "cheese", "tomato", "mustard", "pickle"],
     ARGENTINIAN: ["beef", "chimichurri", "corn", "potato", "onion", "garlic"],
     AUSTRALIAN: ["lamb", "potato", "mint", "carrot", "peas", "butter"],
@@ -77,18 +90,17 @@ function generateUniqueRecipes(N) {
     VIETNAMESE: ["rice noodles", "lemongrass", "herbs", "chili oil", "beef", "fish sauce"]
   };
 
-  const usedNames = new Set();
-  const recipes = [];
+  const usedNames: Set<string> = new Set();
+  const recipes: Recipe[] = [];
 
-  function getRandom(arr) {
+  function getRandom<T>(arr: T[]): T {
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
-  function generateName() {
-    // Compose a name with 2 or 3 words: adjective + main ingredient + optional dish type
+  function generateName(): string {
     const adj = getRandom(adjectives);
     const main = getRandom(mainIngredients);
-    const useDishType = Math.random() < 0.7; // 70% chance to add dish type
+    const useDishType = Math.random() < 0.7;
     const dish = useDishType ? getRandom(dishTypes) : null;
 
     return dish ? `${adj} ${main} ${dish}` : `${adj} ${main}`;
@@ -103,7 +115,7 @@ function generateUniqueRecipes(N) {
     const name = generateName();
 
     if (usedNames.has(name)) {
-      continue; // skip duplicates
+      continue;
     }
     usedNames.add(name);
 
@@ -125,7 +137,7 @@ function generateUniqueRecipes(N) {
       mealTime,
       isVegan,
       isVegetarian,
-      ingredients: JSON.stringify(ingredients),
+      ingredients,
       instructions
     });
   }
@@ -133,5 +145,4 @@ function generateUniqueRecipes(N) {
   return recipes;
 }
 
-// Example usage:
-console.log(generateUniqueRecipes(50));
+export { generateUniqueRecipes };

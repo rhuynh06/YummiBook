@@ -27,7 +27,7 @@ YummiBook is a full-stack web app that lets you browse, filter, add, edit, and v
 ### Backend
 - **Node.js + Express**
 - **Prisma ORM**
-- **SQLite**
+- **PostgresSQL**
 
 ---
 

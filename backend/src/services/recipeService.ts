@@ -1,16 +1,54 @@
-// services/recipeService.js
-const { PrismaClient } = require("../generated/prisma");
-const prisma = new PrismaClient();
+import { PrismaClient, Food } from "../../generated/prisma/index";
+
+const prisma: PrismaClient = new PrismaClient();
+
+interface RecipeFilters {
+  maxPrice?: string;
+  mealTime?: string;
+  isVegan?: string;
+  isVegetarian?: string;
+  maxPrepTime?: string;
+  cuisine?: string;
+  search?: string;
+  [key: string]: any;
+}
+
+interface PaginationOptions {
+  cursor?: string;
+  limit?: string;
+}
+
+interface CreateRecipeData {
+  name: string;
+  price: number;
+  cuisine: string;
+  prepTime: number;
+  mealTime: 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK';
+  isVegan: boolean;
+  isVegetarian: boolean;
+  ingredients: string[];
+  instructions: string;
+}
+
+interface RecipeResponse extends Omit<Food, 'ingredients'> {
+  ingredients: string[];
+}
+
+interface GetRecipesResponse {
+  data: RecipeResponse[];
+  nextCursor: number | null;
+  hasMore: boolean;
+}
 
 class RecipeService {
   /**
    * Get recipes with optional filters and pagination
    */
-  async getRecipes(filters = {}, pagination = {}) {
-    const { cursor, limit = 20 } = pagination;
+  async getRecipes(filters: RecipeFilters = {}, pagination: PaginationOptions = {}): Promise<GetRecipesResponse> {
+    const { cursor, limit = '20' } = pagination;
     const whereClause = this.buildWhereClause(filters);
 
-    const foods = await prisma.food.findMany({
+    const foods: Food[] = await prisma.food.findMany({
       where: whereClause,
       take: parseInt(limit) + 1,
       ...(cursor && {
@@ -20,14 +58,14 @@ class RecipeService {
       orderBy: { id: 'asc' }
     });
 
-    const hasMore = foods.length > parseInt(limit);
-    const results = hasMore ? foods.slice(0, -1) : foods;
+    const hasMore: boolean = foods.length > parseInt(limit);
+    const results: Food[] = hasMore ? foods.slice(0, -1) : foods;
 
     // Apply case-insensitive filters in JavaScript for SQLite
-    const filteredResults = this.applyClientSideFilters(results, filters);
+    const filteredResults: Food[] = this.applyClientSideFilters(results, filters);
 
     return {
-      data: filteredResults.map(this.parseIngredients),
+      data: filteredResults.map((food: Food) => this.parseIngredients(food)),
       nextCursor: hasMore && filteredResults.length > 0 ? filteredResults[filteredResults.length - 1].id : null,
       hasMore: hasMore && filteredResults.length > parseInt(limit) - 1
     };
@@ -36,8 +74,8 @@ class RecipeService {
   /**
    * Build Prisma where clause from filters (without case-insensitive searches)
    */
-  buildWhereClause(filters) {
-    const whereClause = {};
+  buildWhereClause(filters: RecipeFilters): Record<string, any> {
+    const whereClause: Record<string, any> = {};
     const {
       maxPrice,
       mealTime,
@@ -74,38 +112,38 @@ class RecipeService {
   /**
    * Apply case-insensitive filters on the client side (for SQLite compatibility)
    */
-  applyClientSideFilters(foods, filters) {
-    let filtered = foods;
+  applyClientSideFilters(foods: Food[], filters: RecipeFilters): Food[] {
+    let filtered: Food[] = foods;
     const { cuisine, search } = filters;
 
     // Case-insensitive cuisine filter
     if (cuisine && cuisine.trim() !== '') {
-      const cuisineSearch = cuisine.toLowerCase();
-      filtered = filtered.filter(food =>
+      const cuisineSearch: string = cuisine.toLowerCase();
+      filtered = filtered.filter((food: Food) =>
         food.cuisine && food.cuisine.toLowerCase().includes(cuisineSearch)
       );
     }
 
     // Case-insensitive search across name, cuisine, and ingredients
     if (search && search.trim() !== '') {
-      const searchTerm = search.toLowerCase();
-      filtered = filtered.filter(food => {
+      const searchTerm: string = search.toLowerCase();
+      filtered = filtered.filter((food: Food) => {
         // Search in recipe name
-        const nameMatch = food.name && food.name.toLowerCase().includes(searchTerm);
+        const nameMatch: boolean = !!(food.name && food.name.toLowerCase().includes(searchTerm));
         
         // Search in ingredients
-        let ingredientMatch = false;
+        let ingredientMatch: boolean = false;
         try {
           if (food.ingredients) {
             // If ingredients is already an array
             if (Array.isArray(food.ingredients)) {
-              ingredientMatch = food.ingredients.some(ing => 
+              ingredientMatch = (food.ingredients as string[]).some((ing: string) => 
                 ing.toLowerCase().includes(searchTerm)
               );
             } else {
               // If ingredients is still a JSON string
-              const ingredients = JSON.parse(food.ingredients || '[]');
-              ingredientMatch = ingredients.some(ing => 
+              const ingredients: string[] = JSON.parse(food.ingredients as string || '[]');
+              ingredientMatch = ingredients.some((ing: string) => 
                 ing.toLowerCase().includes(searchTerm)
               );
             }
@@ -115,7 +153,7 @@ class RecipeService {
         }
         
         // Search in cuisine
-        const cuisineMatch = food.cuisine && food.cuisine.toLowerCase().includes(searchTerm);
+        const cuisineMatch: boolean = !!(food.cuisine && food.cuisine.toLowerCase().includes(searchTerm));
         
         return nameMatch || ingredientMatch || cuisineMatch;
       });
@@ -127,11 +165,11 @@ class RecipeService {
   /**
    * Parse ingredients JSON string to array
    */
-  parseIngredients(food) {
+  parseIngredients(food: Food): RecipeResponse {
     try {
       return {
         ...food,
-        ingredients: JSON.parse(food.ingredients || '[]')
+        ingredients: JSON.parse((food.ingredients as string) || '[]')
       };
     } catch (e) {
       console.error('Error parsing ingredients for food:', food.id, e);
@@ -145,8 +183,8 @@ class RecipeService {
   /**
    * Get a single recipe by ID
    */
-  async getRecipeById(id) {
-    const recipe = await prisma.food.findUnique({
+  async getRecipeById(id: number): Promise<RecipeResponse | null> {
+    const recipe: Food | null = await prisma.food.findUnique({
       where: { id }
     });
 
@@ -157,10 +195,10 @@ class RecipeService {
   /**
    * Create a new recipe
    */
-  async createRecipe(data) {
+  async createRecipe(data: CreateRecipeData): Promise<RecipeResponse> {
     const { ingredients, ...rest } = data;
 
-    const newRecipe = await prisma.food.create({
+    const newRecipe: Food = await prisma.food.create({
       data: {
         ...rest,
         ingredients: JSON.stringify(ingredients)
@@ -170,21 +208,27 @@ class RecipeService {
     return this.parseIngredients(newRecipe);
   }
 
-  async updateRecipe(id, data) {
+  /**
+   * Update a recipe
+   */
+  async updateRecipe(id: number, data: Partial<CreateRecipeData>): Promise<RecipeResponse> {
     const { ingredients, ...rest } = data;
 
-    const updatedRecipe = await prisma.food.update({
+    const updatedRecipe: Food = await prisma.food.update({
       where: { id },
       data: {
         ...rest,
-        ingredients: JSON.stringify(ingredients)
+        ...(ingredients && { ingredients: JSON.stringify(ingredients) })
       }
     });
 
     return this.parseIngredients(updatedRecipe);
   }
 
-  async deleteRecipes(ids) {
+  /**
+   * Delete recipes by IDs
+   */
+  async deleteRecipes(ids: number[]): Promise<number[]> {
     if (!Array.isArray(ids) || ids.length === 0) {
       throw new Error('No IDs provided for deletion');
     }
@@ -196,12 +240,15 @@ class RecipeService {
     return ids;
   }
 
-  async recipeExists(id) {
-    const count = await prisma.food.count({
+  /**
+   * Check if a recipe exists
+   */
+  async recipeExists(id: number): Promise<boolean> {
+    const count: number = await prisma.food.count({
       where: { id }
     });
     return count > 0;
   }
 }
 
-module.exports = new RecipeService();
+export default new RecipeService();

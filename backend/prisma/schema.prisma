@@ -4,24 +4,24 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Food {
-  id            Int     @id @default(autoincrement())
-  name          String  @unique
-  price         Float
-  cuisine       String
-  prepTime      Int
-  mealTime      MealTime
-  isVegan       Boolean
-  isVegetarian  Boolean
-  ingredients   String  // Store as JSON string
-  instructions  String
+  id           Int      @id @default(autoincrement())
+  name         String   @unique
+  price        Float
+  cuisine      String
+  prepTime     Int
+  mealTime     MealTime
+  isVegan      Boolean
+  isVegetarian Boolean
+  ingredients  String
+  instructions String
 }
 
-enum MealTime{
+enum MealTime {
   BREAKFAST
   LUNCH
   DINNER

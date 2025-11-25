@@ -1,12 +1,33 @@
-const express = require('express');
-const recipeService = require('../services/recipeService');
+import express, { Router, Request, Response } from 'express';
+import recipeService from '../services/recipeService';
 
-const router = express.Router();
+const router: Router = express.Router();
+
+interface RecipeFilters {
+  [key: string]: any;
+}
+
+interface PaginationOptions {
+  cursor?: string;
+  limit?: string;
+}
+
+interface CreateRecipeBody {
+  name: string;
+  price: number;
+  cuisine: string;
+  prepTime: number;
+  mealTime: 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK';
+  isVegan: boolean;
+  isVegetarian: boolean;
+  ingredients: string[];
+  instructions: string;
+}
 
 // get all recipes with optional filters and pagination
-router.get('/', async (req, res) => {
+router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { cursor, limit, ...filters } = req.query;
+    const { cursor, limit, ...filters } = req.query as RecipeFilters & PaginationOptions;
     const result = await recipeService.getRecipes(filters, { cursor, limit });
     res.json(result);
   } catch (error) {
@@ -16,18 +37,20 @@ router.get('/', async (req, res) => {
 });
 
 // get recipe by id
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id, 10);
 
     if (isNaN(id)) {
-      return res.status(400).json({ error: 'Invalid recipe ID' });
+      res.status(400).json({ error: 'Invalid recipe ID' });
+      return;
     }
 
     const recipe = await recipeService.getRecipeById(id);
 
     if (!recipe) {
-      return res.status(404).json({ error: 'Recipe not found' });
+      res.status(404).json({ error: 'Recipe not found' });
+      return;
     }
 
     res.json(recipe);
@@ -38,7 +61,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // create recipe
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request<{}, {}, CreateRecipeBody>, res: Response): Promise<void> => {
   try {
     const {
       name,
@@ -54,13 +77,15 @@ router.post('/', async (req, res) => {
 
     // Basic validation
     if (!name || !cuisine || !mealTime || !ingredients || !instructions) {
-      return res.status(400).json({ 
+      res.status(400).json({ 
         error: 'Missing required fields: name, cuisine, mealTime, ingredients, instructions' 
       });
+      return;
     }
 
     if (!Array.isArray(ingredients)) {
-      return res.status(400).json({ error: 'Ingredients must be an array' });
+      res.status(400).json({ error: 'Ingredients must be an array' });
+      return;
     }
 
     const newRecipe = await recipeService.createRecipe(req.body);
@@ -72,12 +97,13 @@ router.post('/', async (req, res) => {
 });
 
 // update recipe
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req: Request<{ id: string }, {}, Partial<CreateRecipeBody>>, res: Response): Promise<void> => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id, 10);
 
     if (isNaN(id)) {
-      return res.status(400).json({ error: 'Invalid recipe ID' });
+      res.status(400).json({ error: 'Invalid recipe ID' });
+      return;
     }
 
     const {
@@ -95,12 +121,14 @@ router.put('/:id', async (req, res) => {
     // Check if recipe exists
     const exists = await recipeService.recipeExists(id);
     if (!exists) {
-      return res.status(404).json({ error: 'Recipe not found' });
+      res.status(404).json({ error: 'Recipe not found' });
+      return;
     }
 
     // Basic validation
     if (ingredients && !Array.isArray(ingredients)) {
-      return res.status(400).json({ error: 'Ingredients must be an array' });
+      res.status(400).json({ error: 'Ingredients must be an array' });
+      return;
     }
 
     const updatedRecipe = await recipeService.updateRecipe(id, req.body);
@@ -112,7 +140,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // delete recipes
-router.delete('/', async (req, res) => {
+router.delete('/', async (req: Request<{}, {}, { ids: number[] }>, res: Response): Promise<void> => {
   try {
     const { ids } = req.body;
 
@@ -121,12 +149,13 @@ router.delete('/', async (req, res) => {
   } catch (error) {
     console.error('Error deleting recipes:', error);
     
-    if (error.message === 'No IDs provided for deletion') {
-      return res.status(400).json({ error: error.message });
+    if (error instanceof Error && error.message === 'No IDs provided for deletion') {
+      res.status(400).json({ error: error.message });
+      return;
     }
     
     res.status(500).json({ error: 'Failed to delete recipes' });
   }
 });
 
-module.exports = router;
+export default router;
