@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { PrismaClient } from '../generated/prisma';
 import { generateUniqueRecipes } from './seedGenerator';
 
