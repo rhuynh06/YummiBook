@@ -1,6 +1,7 @@
 import type { Recipe, FilterOptions } from '../types/recipe';
+import { BACKEND_URL } from '../config';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5050';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || BACKEND_URL;
 
 interface PaginatedResponse {
   data: Recipe[];
